@@ -107,7 +107,6 @@ void CSF::readPointsFromFile(std::string filename) {
     read_xyz(filename, this->point_cloud);
 }
 
-
 void CSF::do_filtering(std::vector<int>& groundIndexes,
                        std::vector<int>& offGroundIndexes,
                        bool              exportCloth) {

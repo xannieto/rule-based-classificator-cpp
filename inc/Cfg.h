@@ -17,13 +17,61 @@
 
 #ifndef _CFG_H_
 #define _CFG_H_
+#include <algorithm>
 #include <iostream>  
 #include <string>  
 #include <fstream> 
+#include <istream>
+#include <map>
+#include <utility>
 
 class Cfg
 {
+private:
+	std::map<std::string, std::string> m_parameters;
+
 public:
+	Cfg() = default;
+
+	Cfg(const std::string& fileName) : m_parameters{}
+	{
+		std::ifstream config(fileName);
+		const std::string delimiter{"="};
+
+		if (config)
+		{
+			while(config)
+			{
+				std::string line{};
+				std::getline(config, line);
+
+				std::string key{};
+				key = line.substr(0, line.find(delimiter));
+
+				std::string value{};
+				value = line.substr(line.find(delimiter) + 1);
+
+				m_parameters.emplace(std::make_pair(key, value));
+			}
+		}
+		else
+		{
+			std::cout << "Cannot open for reading: " << fileName << '\n';
+		}
+
+		if (config.is_open())
+			config.close();
+	}
+
+	std::string getValue(const std::string& key)
+	{
+		if (m_parameters.find(key) != m_parameters.end())
+		{
+			return m_parameters.at(key);
+		}
+		return "";
+	}
+
 	bool readConfigFile(const char * cfgfilepath, const std::string & key, std::string & value)
 	{
 		std::fstream cfgFile;
