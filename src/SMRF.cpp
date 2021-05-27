@@ -3,7 +3,7 @@
 //
 
 #include "convexHull.hpp"
-#include "dtm.h"
+#include "SMRF.h"
 #include "pseudoInverseMoorePenrose.h"
 
 #include <Eigen/src/Core/Matrix.h>
@@ -50,11 +50,10 @@
 *
 */
 
-namespace dtm
+namespace SMRF
 {
 
 constexpr double spring{ 0.707106781186547524 };
-constexpr int MAX_NUM_CELL_SYSTEM{ 96 };
 
 void classify(std::vector<Lpoint> & points, DTMGrid & dtm)
 {

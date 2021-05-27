@@ -21,6 +21,7 @@
 #define NULL_EXT "null_ext" // To indicate that a file has no extension
 
 #include "point.h"
+#include "CSF.h"
 
 #include <algorithm>
 #include <array>
@@ -32,7 +33,6 @@
 #include <vector>
 
 namespace filesys = std::experimental::filesystem;
-
 
 unsigned int getNumberOfPoints(const char * filePath);
 
@@ -63,5 +63,7 @@ void removeFilesInDir(std::string & pathToDirectory);
 void deleteFileIfExists(const std::string & filePath);
 
 std::vector<Lpoint> readGroundTruth(std::string& filePath, unsigned int numCols);
+
+void readPointsCSF(std::string& fname, csf::PointCloud& pointcloud);
 
 #endif //CPP_HANDLERS_H

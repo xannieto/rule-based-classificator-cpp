@@ -49,6 +49,7 @@ struct Point {
     };
 
     Point() : x(0), y(0), z(0) {}
+	Point(double p_x, double p_y, double p_z) : x{p_x}, y{p_y}, z{p_z} {}
 };
 
 class PointCloud : public std::vector<Point>{

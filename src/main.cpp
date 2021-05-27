@@ -1,6 +1,6 @@
 #include "Cfg.h"
 #include "CSF.h"
-#include "dtm.h"
+#include "SMRF.h"
 #include "handlers.h"
 #include "main_options.h"
 #include "octree.h"
@@ -32,6 +32,19 @@ int main(int argc, char * argv[])
 	}
 	if (mainOptions.algorithm == Algorithm::SMRF)
 	{
+		Cfg cfg("smrf.cfg");
+
+		if (!cfg.isGoodRead())
+		{
+			std::istringstream cell_size(cfg.getValue("cell_size"));
+			std::istringstream max_slope(cfg.getValue("max_slope"));
+			std::istringstream max_window_size(cfg.getValue("max_window_size"));
+
+			cell_size >> SMRF::CELL_SIZE;
+			max_slope >> SMRF::MAX_SLOPE;
+			max_window_size >> SMRF::MAX_WINDOW_SIZE;
+		}
+
 		std::vector<Lpoint> points = readPointCloud(mainOptions.inputFile);
 		// Handle number of points
 		handleNumberOfPoints(points);
@@ -45,15 +58,15 @@ int main(int argc, char * argv[])
 
 		tw.start();
 		double min[3], max[3];
-		dtm::getMinMaxCoordinates(points, min, max);
-		dtm::DTMGrid dtm = dtm::smrf(points, gOctree, min, max);
+		SMRF::getMinMaxCoordinates(points, min, max);
+		SMRF::DTMGrid dtm = SMRF::smrf(points, gOctree, min, max);
 		tw.stop();
 		double seconds_dtm = tw.getElapsedDecimalSeconds();
 		std::cout << "DTM computation completed in " << seconds_dtm << "s\n";
 	} 
 	else if (mainOptions.algorithm == Algorithm::CSF) 
 	{
-		Cfg cfg("params.cfg");
+		Cfg cfg("csf.cfg");
 
 		std::string slop_smooth(cfg.getValue("slop_smooth"));
 		//cfg.readConfigFile("params.cfg", "slop_smooth", slop_smooth);
@@ -106,7 +119,7 @@ int main(int argc, char * argv[])
 
 		std::cout << "Use Time: " << tw.getElapsedDecimalSeconds() << '\n';
 
-		csf.savePoints(groundIndexes, mainOptions.outputDirName + "ground.txt");
-		csf.savePoints(offGroundIndexes,  mainOptions.outputDirName + "non-ground.txt");
+		csf.savePoints(groundIndexes, mainOptions.outputDirName + "/ground.txt");
+		csf.savePoints(offGroundIndexes,  mainOptions.outputDirName + "/non-ground.txt");
 	}
 }

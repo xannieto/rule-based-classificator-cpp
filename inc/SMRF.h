@@ -34,16 +34,14 @@
 #include <set>
 #include <utility>
 
-namespace dtm
+namespace SMRF
 {
 
 const int          NO_DATA_VAL     = -999;
-static const float CELL_SIZE       = 1.0;
-static const float MAX_SLOPE       = 0.15;
-static const float MAX_WINDOW_SIZE = 16.0;
-static const float MAX_HEIGHT = 0.50;
-
-
+static double CELL_SIZE       = 1.0;
+static double MAX_SLOPE       = 0.15;
+static double MAX_WINDOW_SIZE = 16.0;
+static double MAX_HEIGHT = 0.50;
 
 typedef struct Coordinate
 {

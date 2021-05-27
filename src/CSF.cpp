@@ -175,7 +175,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     }
 
     if (exportCloth)
-        cloth.saveToFile();
+        cloth.saveToFile("out/cloth_nodes.txt");
 
     c2cdist c2c(params.class_threshold);
     c2c.calCloud2CloudDist(cloth, point_cloud, groundIndexes, offGroundIndexes);

@@ -31,7 +31,7 @@ set(SRC_FILES
 	src/octree.cpp
 	src/vector.cpp
     src/main_options.cpp
-	src/dtm.cpp
+	src/SMRF.cpp
 	src/TimeWatcher.cpp
 	src/c2cdist.cpp
 	src/Cloth.cpp
@@ -50,7 +50,7 @@ set(INC_FILES
 	inc/laspec.h
     inc/main_options.h
 	inc/convexHull.hpp
-	inc/dtm.h
+	inc/SMRF.h
 	inc/TimeWatcher.h
 	inc/pseudoInverseMoorePenrose.h
 	inc/c2cdist.h

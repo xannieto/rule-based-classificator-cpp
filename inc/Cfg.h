@@ -29,13 +29,17 @@ class Cfg
 {
 private:
 	std::map<std::string, std::string> m_parameters;
+	bool goodRead{true};
 
 public:
+	std::string m_fileName;
+
 	Cfg() = default;
 
-	Cfg(const std::string& fileName) : m_parameters{}
+	Cfg(const std::string& fileName)
+	: m_parameters{}, m_fileName{fileName}
 	{
-		std::ifstream config(fileName);
+		std::ifstream config(m_fileName);
 		const std::string delimiter{"="};
 
 		if (config)
@@ -56,7 +60,8 @@ public:
 		}
 		else
 		{
-			std::cout << "Cannot open for reading: " << fileName << '\n';
+			goodRead = false;
+			std::cout << "Cannot open for reading: " << m_fileName << '\n';
 		}
 
 		if (config.is_open())
@@ -69,34 +74,14 @@ public:
 		{
 			return m_parameters.at(key);
 		}
-		return "";
+		return nullptr;
+	}
+	
+	bool isGoodRead()
+	{
+		return goodRead;
 	}
 
-	bool readConfigFile(const char * cfgfilepath, const std::string & key, std::string & value)
-	{
-		std::fstream cfgFile;
-		cfgFile.open(cfgfilepath);
-		if (!cfgFile.is_open())
-		{
-			std::cout << "can not open cfg file!" << std::endl;
-			return false;
-		}
-		char tmp[1000];
-		while (!cfgFile.eof())
-		{
-			cfgFile.getline(tmp, 1000);
-			std::string line(tmp);
-			std::size_t pos = line.find('=');
-			if (pos == std::string::npos) return false;
-			std::string tmpKey = line.substr(0, pos);
-			if (key == tmpKey)
-			{
-				value = line.substr(pos + 1);
-				return true;
-			}
-		}
-		return false;
-	}
 };
 
 

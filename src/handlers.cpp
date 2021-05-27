@@ -4,15 +4,20 @@
 
 #include "handlers.h"
 #include <boost/algorithm/string.hpp>
+#include <cstdlib>
 #include <dirent.h>
+#include "point_cloud.h"
+#include <fstream>
+#include <iostream>
 #include <main_options.h>
 
-unsigned int getNumberOfPoints(const char *filePath) {
-  std::ifstream inFile(filePath);
-  unsigned int numLines = std::count(std::istreambuf_iterator<char>(inFile),
-                                     std::istreambuf_iterator<char>(), '\n');
+unsigned int getNumberOfPoints(const char *filePath)
+{
+	std::ifstream inFile(filePath);
+	unsigned int numLines = std::count(std::istreambuf_iterator<char>(inFile),
+										std::istreambuf_iterator<char>(), '\n');
 
-  return numLines;
+	return numLines;
 }
 
 void handleNumberOfPoints(std::vector<Lpoint> &points)
@@ -23,13 +28,15 @@ void handleNumberOfPoints(std::vector<Lpoint> &points)
  * If no userNumPoints -> numPoints
  */
 {
-  unsigned int numPoints = points.size();
+	unsigned int numPoints = points.size();
 
-  if (mainOptions.userNumPoints) {
-    if (mainOptions.numPoints < numPoints) {
-      points.resize(mainOptions.numPoints);
-    }
-  }
+	if (mainOptions.userNumPoints)
+	{
+		if (mainOptions.numPoints < numPoints)
+		{
+			points.resize(mainOptions.numPoints);
+		}
+	}
 }
 
 unsigned int getNumberOfCols(std::string &filePath)
@@ -39,19 +46,19 @@ unsigned int getNumberOfCols(std::string &filePath)
  * @return
  */
 {
-  std::ifstream file(filePath);
-  std::string line, item;
-  unsigned int numCols = 0;
+	std::ifstream file(filePath);
+	std::string line, item;
+	unsigned int numCols = 0;
 
-  // First Line
-  std::getline(file, line);
-  std::stringstream ss(line);
+	// First Line
+	std::getline(file, line);
+	std::stringstream ss(line);
 
-  while (ss >> item)
-    numCols++;
+	while (ss >> item)
+		numCols++;
 
-  file.close();
-  return numCols;
+	file.close();
+	return numCols;
 }
 
 void createDirectory(std::string &dirname)
@@ -61,10 +68,11 @@ void createDirectory(std::string &dirname)
  * @return
  */
 {
-  filesys::path dir = dirname;
-  if (!filesys::is_directory(dir)) {
-    filesys::create_directories(dir);
-  }
+	filesys::path dir = dirname;
+	if (!filesys::is_directory(dir))
+	{
+		filesys::create_directories(dir);
+	}
 }
 
 std::string getFileExtension(std::string &filename)
@@ -75,15 +83,18 @@ std::string getFileExtension(std::string &filename)
  * @return
  */
 {
-  filesys::path pathObj(filename);
-  std::string fExt;
-  if (pathObj.has_extension()) {
-    fExt = pathObj.extension().string();
-  } else {
-    fExt = NULL_EXT;
-  }
+	filesys::path pathObj(filename);
+	std::string fExt;
+	if (pathObj.has_extension())
+	{
+		fExt = pathObj.extension().string();
+	}
+	else
+	{
+		fExt = NULL_EXT;
+	}
 
-  return fExt;
+	return fExt;
 }
 
 std::string getAndReplaceLowerFileExtension(std::string &filename)
@@ -94,75 +105,82 @@ std::string getAndReplaceLowerFileExtension(std::string &filename)
  * @return
  */
 {
-  filesys::path pathObj(filename);
-  // Get File Extension
-  std::string fExt = getFileExtension(filename);
-  // Lowercase file extension
-  boost::algorithm::to_lower(fExt);
-  // Replace File Extension
-  pathObj.replace_extension(fExt);
-  filename = pathObj.string();
+	filesys::path pathObj(filename);
+	// Get File Extension
+	std::string fExt = getFileExtension(filename);
+	// Lowercase file extension
+	boost::algorithm::to_lower(fExt);
+	// Replace File Extension
+	pathObj.replace_extension(fExt);
+	filename = pathObj.string();
 
-  return fExt;
+	return fExt;
 }
 
 void writePoints(std::string &filename, std::vector<Lpoint> &points) {
-  std::ofstream f;
-  f = openFile(filename);
-  f << std::fixed << std::setprecision(2);
+	std::ofstream f;
+	f = openFile(filename);
+	f << std::fixed << std::setprecision(2);
 
-  for (Lpoint &p : points) {
-    f << p << "\n";
-  }
+	for (Lpoint &p : points)
+	{
+		f << p << "\n";
+	}
 
-  f.close();
+	f.close();
 }
 
 std::vector<Lpoint> readPointCloud(std::string filename) {
-  // Get Input File extension
-  std::string fExt = getAndReplaceLowerFileExtension(filename);
+	// Get Input File extension
+	std::string fExt = getAndReplaceLowerFileExtension(filename);
 
-  std::vector<Lpoint> points{};
+	std::vector<Lpoint> points{};
 
-  if (fExt != NULL_EXT) {
-    if (fExt == ".xyz" || fExt == ".txt") // The file is plain text
-    {
-      unsigned int numCols = getNumberOfCols(filename);
-      std::cout << "Number of columns: " << numCols << "\n";
-      mainOptions.numCols = numCols;
-      points = readPoints(filename, numCols);
-      return std::move(points);
-    } else {
-      std::cout << "Unrecognized file format. Exiting now.\n";
-      exit(1);
-    }
-  } else {
-    std::cout << "File has no extension. Files to be read must have .xyz, .txt "
-                 "or .las extensions. Exiting now.\n";
-    exit(2);
-  }
+	if (fExt != NULL_EXT)
+	{
+		if (fExt == ".xyz" || fExt == ".txt") // The file is plain text
+		{
+			unsigned int numCols = getNumberOfCols(filename);
+			std::cout << "Number of columns: " << numCols << "\n";
+			mainOptions.numCols = numCols;
+			points = readPoints(filename, numCols);
+			return std::move(points);
+		}
+		else
+		{
+			std::cout << "Unrecognized file format. Exiting now.\n";
+			exit(1);
+		}
+	}
+	else
+	{
+		std::cout << "File has no extension. Files to be read must have .xyz, .txt "
+					"or .las extensions. Exiting now.\n";
+		exit(2);
+	}
 }
 
-std::vector<Lpoint> readGroundTruth(std::string &filePath,
-                                    unsigned int numCols) {
-  std::ifstream inFile(filePath);
-  double x, y;
-  unsigned int fuelType;
-  std::vector<Lpoint> points;
+std::vector<Lpoint> readGroundTruth(std::string &filePath, unsigned int numCols) {
+	std::ifstream inFile(filePath);
+	double x, y;
+	unsigned int fuelType;
+	std::vector<Lpoint> points;
 
-  switch (numCols) {
-  case 3:
-    while (inFile >> x >> y >> fuelType) {
-      points.emplace_back(x, y, fuelType);
-    }
-    break;
+	switch (numCols)
+	{
+	case 3:
+		while (inFile >> x >> y >> fuelType)
+		{
+			points.emplace_back(x, y, fuelType);
+		}
+		break;
 
-  default:
-    std::cout << "Unrecognized format\n";
-    exit(1);
-  }
-  inFile.close();
-  return std::move(points);
+	default:
+		std::cout << "Unrecognized format\n";
+		exit(1);
+	}
+	inFile.close();
+	return points;
 }
 
 std::vector<Lpoint> readPoints(std::string &filePath, unsigned int numCols)
@@ -173,91 +191,97 @@ std::vector<Lpoint> readPoints(std::string &filePath, unsigned int numCols)
  * @return
  */
 {
-  std::ifstream inFile(filePath);
-  double x, y, z, realZ, I;
-  unsigned int gId, classification, r, g, b, fuelType;
-  unsigned short nor, rn, dir, edge;
-  unsigned int idx = 0;
-  std::vector<Lpoint> points;
+	std::ifstream inFile(filePath);
+	double x, y, z, realZ, I;
+	unsigned int gId, classification, r, g, b, fuelType;
+	unsigned short nor, rn, dir, edge;
+	unsigned int idx = 0;
+	std::vector<Lpoint> points;
 
-  std::cout << "Number of read cols: " << numCols << "\n";
-  switch (numCols) {
-  // Classified point cloud
-  case 3:
-    while (inFile >> x >> y >> z) {
-      points.emplace_back(x, y, z);
-    }
-    break;
-  case 6:
-    while (inFile >> x >> y >> z >> I >> gId >> classification) {
-      points.emplace_back(idx, x, y, z, I, gId, classification);
-      idx++;
-    }
-    break;
+	std::cout << "Number of read cols: " << numCols << "\n";
+	switch (numCols)
+	{
+	// Classified point cloud
+	case 3:
+		while (inFile >> x >> y >> z)
+		{
+			points.emplace_back(x, y, z);
+		}
+		break;
+	
+	case 6:
+		while (inFile >> x >> y >> z >> I >> gId >> classification)
+		{
+			points.emplace_back(idx, x, y, z, I, gId, classification);
+			idx++;
+		}
+		break;
 
-  case 7:
-    while (inFile >> x >> y >> z >> realZ >> I >> gId >> classification) {
-      points.emplace_back(idx, x, y, z, realZ, I, gId, classification);
-      idx++;
-    }
-    break;
+	case 7:
+		while (inFile >> x >> y >> z >> realZ >> I >> gId >> classification)
+		{
+			points.emplace_back(idx, x, y, z, realZ, I, gId, classification);
+			idx++;
+		}
+		break;
 
-  case 8: // Data from https://www.itc.nl/isprs/wgIII-3/filtertest/downloadsites/
-    double xx, yy, zz, II;
-    while (inFile >> x >> y >> z >> I >> xx >> yy >> zz >> II)
-    {
-      points.emplace_back(idx++, x, y, z, I);
-      points.emplace_back(idx++, xx, yy, zz, I);
-    }
-    break;
+	case 8: // Data from https://www.itc.nl/isprs/wgIII-3/filtertest/downloadsites/
+		double xx, yy, zz, II;
+		while (inFile >> x >> y >> z >> I >> xx >> yy >> zz >> II)
+		{
+			points.emplace_back(idx++, x, y, z, I);
+			points.emplace_back(idx++, xx, yy, zz, I);
+		}
+		break;
 
-    // Raw point cloud without RGB
-  case 9:
-    while (inFile >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
-           classification) {
-      points.emplace_back(idx, x, y, z, I, rn, nor, dir, edge, classification);
-      idx++;
-    }
-    break;
-    // Over-segmented point cloud with group Ids
-  case 10:
-    while (inFile >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
-           classification >> gId) {
-      points.emplace_back(idx, x, y, z, I, rn, nor, dir, edge, classification,
-                          gId);
-      idx++;
-    }
-    break;
+	// Raw point cloud without RGB
+	case 9:
+		while (inFile >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
+				classification) {
+			points.emplace_back(idx, x, y, z, I, rn, nor, dir, edge, classification);
+			idx++;
+		}
+		break;
+	// Over-segmented point cloud with group Ids
+	case 10:
+		while (inFile >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
+				classification >> gId) {
+			points.emplace_back(idx, x, y, z, I, rn, nor, dir, edge, classification,
+								gId);
+			idx++;
+		}
+		break;
 
-  case 11:
-    while (inFile >> x >> y >> z >> realZ >> I >> rn >> nor >> dir >> edge >>
-           classification >> gId) {
-      points.emplace_back(idx, x, y, z, realZ, I, rn, nor, dir, edge,
-                          classification, gId);
-      idx++;
-    }
-    break;
+	case 11:
+		while (inFile >> x >> y >> z >> realZ >> I >> rn >> nor >> dir >> edge >>
+				classification >> gId) {
+			points.emplace_back(idx, x, y, z, realZ, I, rn, nor, dir, edge,
+								classification, gId);
+			idx++;
+		}
+		break;
 
-  case 12:
-    while (inFile >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
-           classification >> r >> g >> b) {
-      points.emplace_back(idx, x, y, z, I, rn, nor, dir, edge, classification,
-                          r, g, b);
-      idx++;
-    }
-    break;
+	case 12:
+		while (inFile >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
+				classification >> r >> g >> b) {
+			points.emplace_back(idx, x, y, z, I, rn, nor, dir, edge, classification,
+								r, g, b);
+			idx++;
+		}
+		break;
 
-  default:
-    std::cout << "Unrecognized format\n";
-    exit(1);
-  }
-  inFile.close();
-  return std::move(points);
+	default:
+		std::cout << "Unrecognized format\n";
+		exit(1);
+	}
+	inFile.close();
+	return points;
 }
 
-bool isDir(const std::string &s) {
-  struct stat buffer;
-  return (stat(s.c_str(), &buffer) == 0);
+bool isDir(const std::string &s)
+{
+	struct stat buffer;
+	return (stat(s.c_str(), &buffer) == 0);
 }
 
 void createDir(std::string &pathToDirectory)
@@ -266,18 +290,23 @@ void createDir(std::string &pathToDirectory)
  * @param pathToDirectory Relative path to directory
  */
 {
-  const char *cString = pathToDirectory.c_str();
-  DIR *dir = opendir(cString);
-  if (dir) {
-    /* Directory exists. */
-    closedir(dir);
-  } else if (ENOENT == errno) {
-    /* Directory does not exist. */
-    mkdir(cString, 0777);
-  } else {
-    /* opendir() failed for some other reason. */
-    mkdir(cString, 0777);
-  }
+	const char *cString = pathToDirectory.c_str();
+	DIR *dir = opendir(cString);
+	if (dir)
+	{
+		/* Directory exists. */
+		closedir(dir);
+	}
+	else if (ENOENT == errno)
+	{
+		/* Directory does not exist. */
+		mkdir(cString, 0777);
+	}
+	else
+	{
+		/* opendir() failed for some other reason. */
+		mkdir(cString, 0777);
+	}
 }
 
 void removeFilesInDir(std::string &pathToDirectory)
@@ -286,17 +315,18 @@ void removeFilesInDir(std::string &pathToDirectory)
  * @param pathToDirectory
  */
 {
-  struct dirent *next_file;
-  const char *cString = pathToDirectory.c_str();
-  DIR *dir = opendir(cString);
-  char filepath[256];
+	struct dirent *next_file;
+	const char *cString = pathToDirectory.c_str();
+	DIR *dir = opendir(cString);
+	char filepath[256];
 
-  while ((next_file = readdir(dir)) != nullptr) {
-    // build the path for each file in the folder
-    sprintf(filepath, "%s/%s", cString, next_file->d_name);
-    remove(filepath);
-  }
-  closedir(dir);
+	while ((next_file = readdir(dir)) != nullptr)
+	{
+		// build the path for each file in the folder
+		sprintf(filepath, "%s/%s", cString, next_file->d_name);
+		remove(filepath);
+	}
+	closedir(dir);
 }
 
 std::ofstream openFile(const std::string &filePath)
@@ -307,21 +337,25 @@ std::ofstream openFile(const std::string &filePath)
  * @return
  */
 {
-  std::ofstream f;
-  std::ofstream null;
-  f.open(filePath);
+	std::ofstream f;
+	std::ofstream null;
+	f.open(filePath);
 
-  if (f.is_open()) {
-    return f;
-  } else {
-    std::cout << "Unable to open file. Bad file path?\n";
-    return null; // Return unopened file.
-  }
+	if (f.is_open())
+	{
+		return f;
+	}
+	else
+	{
+		std::cout << "Unable to open file. Bad file path?\n";
+		return null; // Return unopened file.
+	}
 }
 
 void deleteFileIfExists(const std::string &filePath) {
-  std::ifstream file(filePath);
-  if (file.is_open()) {
-    std::remove(filePath.c_str());
-  }
+	std::ifstream file(filePath);
+	if (file.is_open())
+	{
+		std::remove(filePath.c_str());
+	}
 }
