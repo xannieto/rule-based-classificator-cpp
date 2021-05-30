@@ -8,7 +8,6 @@
 
 #include <Eigen/src/Core/Matrix.h>
 #include <algorithm>
-#include <array>
 #include <boost/exception/exception.hpp>
 #include <cmath>
 #include <cstddef>
@@ -57,7 +56,7 @@ constexpr double spring{ 0.707106781186547524 };
 
 void classify(std::vector<Lpoint> & points, DTMGrid & dtm)
 {
-	int i = 0, count = 0;
+	int count = 0;
 
 	std::ofstream f(mainOptions.outputDirName + "/dtm/result.xyz");
 
@@ -113,13 +112,13 @@ inline std::vector<size_t> DTMGrid::getNeighCells(int Ci, int Cj, int r)
 				neighs.push_back(i);
 				neighs.push_back(j);
 			}
-	return std::move(neighs);
+	return neighs;
 }
 
 double DTMGrid::nnInterpolation(Lpoint & p)
 {
 	{
-		int    Ci = 0, Cj = 0, i = 0, j = 0, n = 0, numNeighs = 0;
+		int    Ci = 0, Cj = 0, i = 0, j = 0, n = 0;
 		double dist = 0, minDist = 0, z = 0;
 		Ci                         = ci[p.id()];
 		Cj                         = cj[p.id()];
@@ -183,21 +182,20 @@ void DTMGrid::computeDtmZ(std::vector<Lpoint> & points, Octree & octree)
 }
 
 /** Compare pairs by value (descending order) */
-static int pairCmpDesc(const void * p1, const void * p2)
+/*static int pairCmpDesc(const void * p1, const void * p2)
 {
 	int v1 = ((Pair *) p1)->value;
 	int v2 = ((Pair *) p2)->value;
 	return v2 - v1;
-}
+}*/
 
-static int cmpX(const void * a, const void * b)
+/*static int cmpX(const void * a, const void * b)
 {
 	double v1 = ((struct Coordinate *) a)->value;
 	double v2 = ((struct Coordinate *) b)->value;
 
 	return (v1 > v2) - (v1 < v2);
-}
-
+}*/
 
 extern DTMGrid * createGridDTM(double * min, double * max, int numPts, double cs)
 {
@@ -266,7 +264,7 @@ std::set<indexOfCell_t> DTMGrid::getAdjCellsBE(int ci, int cj)
 				neighs.emplace(std::make_pair(i, j));
 			}
 		}
-	return std::move(neighs);
+	return neighs;
 }
 
 /** Get the adjacent cells for Minimun Surface */
@@ -282,7 +280,7 @@ std::set<indexOfCell_t> DTMGrid::getAdjCellsMS(int Ci, int Cj)
 			if ( (i != Ci || j != Cj) && cells[i][j].inhull )
 				neighs.emplace(std::make_pair(i, j));
 
-	return std::move(neighs);
+	return neighs;
 }
 
 /** Check if a set have at least one cell which is not object */
@@ -306,7 +304,7 @@ std::set<indexOfCell_t> checkForObjCells(DTMGrid *grid, std::set<indexOfCell_t> 
 		if (grid->cells[cell.first][cell.second].obj && !grid->cells[cell.first][cell.second].inpainted)
 			tmp.emplace(cell);
 
-	return std::move(tmp);
+	return tmp;
 }
 
 void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<indexOfCell_t, std::set<indexOfCell_t>>& neighbourCells,
@@ -324,7 +322,7 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 		queueCheckCell.emplace(remainingCells.front());
 		// introducimos a primeira cela das que quedan por facer o inpainting
 		// bucle para buscar veciños
-		while (!queueCheckCell.empty() /*&& cluster.size() < MAX_NUM_CELL_SYSTEM*/)
+		while (!queueCheckCell.empty())
 		{
 			auto cell(queueCheckCell.front());
 			queueCheckCell.pop();
@@ -361,7 +359,7 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 	CheckValueCellFn chValueCellFn, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn, ChangeCellStateFn chCellStateFn)
 {
 	/* resolución paralela dos clusters */
-	#pragma omp parallel for shared(clusters, neighbourCells)
+#pragma omp parallel for shared(clusters, neighbourCells)
 	for (int pos = 0; pos < clusters.size(); ++pos)
 	{
 		Cluster cluster(clusters.at(pos));
@@ -568,7 +566,7 @@ std::set<indexOfCell_t> checkForEmptyCells(DTMGrid *grid, std::set<indexOfCell_t
 		if (grid->cells[cell.first][cell.second].empty && !grid->cells[cell.first][cell.second].inpainted)
 			tmp.emplace(cell);
 
-	return std::move(tmp);
+	return tmp;
 }
 
 void changeInpaintedToTrue(DTMGrid *grid, indexOfCell_t& cell)
@@ -590,7 +588,7 @@ void DTMGrid::inpaintMS(std::vector<indexOfCell_t>& vectorOfEmptyCells)
 	// collemos tódolas celas baleiras e almacenamos os seus veciños nunnha lista
 	std::map<indexOfCell_t, std::set<indexOfCell_t>> neighbourOfEmptyCells{};
 
-	// TODO: paralelizar 
+	// TODO: paralelizar
 	for (int pos = 0; pos < vectorOfEmptyCells.size(); ++pos)
 	{
 		auto cell(vectorOfEmptyCells.at(pos));

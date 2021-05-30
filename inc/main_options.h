@@ -47,7 +47,7 @@ class main_options
 extern main_options mainOptions;
 
 // Define short options
-const char * const short_opts = "a:h:i:o:n";
+const char * const short_opts = "a:h:i:n:o:t:";
 
 // Define long options
 const option long_opts[] = {

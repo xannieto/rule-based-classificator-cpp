@@ -1,3 +1,4 @@
+#include "AccumTime.h"
 #include "Cfg.h"
 #include "CSF.h"
 #include "SMRF.h"
@@ -9,6 +10,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <omp.h>
 
 int main(int argc, char * argv[])
 {
@@ -19,7 +21,8 @@ int main(int argc, char * argv[])
 	createDirectory(mainOptions.outputDirName);
 
 	// Time measurements class
-	TimeWatcher tw{};
+	//TimeWatcher tw{};
+	AccumTime aTime{};
 
 	// Print decimals
 	std::cout << std::fixed;
@@ -56,12 +59,18 @@ int main(int argc, char * argv[])
 		Octree gOctree(center, maxRadius, points);
 
 
-		tw.start();
+		//tw.start();
+		aTime.start();
 		double min[3], max[3];
 		SMRF::getMinMaxCoordinates(points, min, max);
 		SMRF::DTMGrid dtm = SMRF::smrf(points, gOctree, min, max);
-		tw.stop();
-		double seconds_dtm = tw.getElapsedDecimalSeconds();
+		//tw.stop();
+		aTime.stop();
+		//double seconds_dtm = tw.getElapsedDecimalSeconds();
+		double seconds_dtm = aTime.getElapsedDecimalSeconds();
+
+		dtm.writeToFileForCompare(mainOptions.outputDirName + "/smrf_for_compare.txt");
+
 		std::cout << "DTM computation completed in " << seconds_dtm << "s\n";
 	} 
 	else if (mainOptions.algorithm == Algorithm::CSF) 
@@ -100,7 +109,9 @@ int main(int argc, char * argv[])
 		CSF csf{};
 		//step 1 Input the point cloud
 		csf.readPointsFromFile(mainOptions.inputFile);
-		tw.start();
+		//tw.start();
+		aTime.start();
+
 		//In real application, the point cloud may be provided by main program
 		//csf.setPointCloud(pc);//pc is PointCloud class
 
@@ -115,9 +126,11 @@ int main(int argc, char * argv[])
 		//step3 do filtering
 		std::vector<int> groundIndexes, offGroundIndexes;
 		csf.do_filtering(groundIndexes, offGroundIndexes, true);	
-		tw.stop();
+		//tw.stop();
+		aTime.stop();
 
-		std::cout << "Use Time: " << tw.getElapsedDecimalSeconds() << '\n';
+		//std::cout << "Use Time: " << tw.getElapsedDecimalSeconds() << '\n';
+		std::cout << "Use Time: " << aTime.getElapsedDecimalSeconds() << '\n';
 
 		csf.savePoints(groundIndexes, mainOptions.outputDirName + "/ground.txt");
 		csf.savePoints(offGroundIndexes,  mainOptions.outputDirName + "/non-ground.txt");
