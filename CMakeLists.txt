@@ -23,7 +23,6 @@ list(APPEND EXTERNAL_LIBS OpenMP::OpenMP_CXX)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 list(APPEND EXTERNAL_LIBS Eigen3::Eigen)
 
-
 set(SRC_FILES
     src/main.cpp
 	src/handlers.cpp

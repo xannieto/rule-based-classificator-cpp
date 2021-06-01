@@ -14,13 +14,13 @@ main_options mainOptions{};
 void printHelp()
 {
 	std::cout
-	    << "-h: Show this message\n"
-		   "-a: Choose the algorithm (SMRF, CSF)"
-	       "-i: Path to input file\n"
-	       "-o: Path to output file\n"
-		   "-t: Set the number of threads\n"
-	       "-n <--num-points>     : Number of points to be read\n"
-	       "--dtm-file: Path to the dtm file, if existing\n";
+	    << " -h: Show this message\n"
+		   " -a: Choose the algorithm (SMRF, CSF)\n"
+	       " -i: Path to input file\n"
+		   " -o: Path to output file\n"
+		   " -t: Set the number of threads for OpenMP\n"
+	       " -n <--num-points>     : Number of points to be read\n"
+	       " --dtm-file: Path to the dtm file, if existing\n";
 	exit(1);
 }
 
