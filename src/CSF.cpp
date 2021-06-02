@@ -17,6 +17,7 @@
 
 #define DLL_IMPLEMENT
 
+#include "AccumTime.h"
 #include "CSF.h"
 #include "XYZReader.h"
 #include "Vec3.h"
@@ -113,7 +114,10 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     // Terrain
     std::cout << "[" << this->index << "] Configuring terrain..." << std::endl;
     csf::Point bbMin, bbMax;
+
+	AccumTime::instance().start();
     point_cloud.computeBoundingBox(bbMin, bbMax);
+	AccumTime::instance().stop("Computing bounding box");
 
     double cloth_y_height = 0.05;
 
@@ -149,12 +153,15 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     );
 
     std::cout << "[" << this->index << "] Rasterizing..." << std::endl;
+	AccumTime::instance().start();
     Rasterization::RasterTerrian(cloth, point_cloud, cloth.getHeightvals());
+	AccumTime::instance().stop("Rasterize terrain");
 
     double time_step2 = params.time_step * params.time_step;
     double gravity    = 0.2;
 
     std::cout << "[" << this->index << "] Simulating..." << std::endl;
+	AccumTime::instance().start();
     cloth.addForce(Vec3(0, -gravity, 0) * time_step2);
 
     // boost::progress_display pd(params.interations);
@@ -168,17 +175,21 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
         }
         // pd++;
     }
-
+	AccumTime::instance().stop("Cloth Simulation");
     if (params.bSloopSmooth) {
         std::cout << "[" << this->index << "]  - post handle..." << std::endl;
+		AccumTime::instance().start();
         cloth.movableFilter();
+		AccumTime::instance().stop("Post handle");
     }
 
     if (exportCloth)
         cloth.saveToFile("out/cloth_nodes.txt");
 
     c2cdist c2c(params.class_threshold);
+	AccumTime::instance().start();
     c2c.calCloud2CloudDist(cloth, point_cloud, groundIndexes, offGroundIndexes);
+	AccumTime::instance().stop("Cloud to cloud distance");
 }
 
 void CSF::savePoints(std::vector<int> grp, std::string path) {

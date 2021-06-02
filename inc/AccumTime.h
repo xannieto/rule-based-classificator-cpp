@@ -3,6 +3,21 @@
 
 #include "TimeWatcher.h"
 
+#include <map>
+#include <sched.h>
+
+struct Interval
+{
+	std::string measureDetails;
+	long seconds;
+	long milliseconds;
+	long nanoseconds;
+
+	Interval() : measureDetails(""), seconds(0), milliseconds(0), nanoseconds(0) {}
+	Interval(std::string& sDetails, long s, long m, long n)
+		: measureDetails(sDetails), seconds(s), milliseconds(m), nanoseconds(n) {}
+};
+
 class AccumTime : public TimeWatcher
 {
 private:
@@ -14,17 +29,21 @@ private:
 	long m_overhead_milliseconds;
 	long m_overhead_nanoseconds;
 
-	void addNewTime();
+	std::vector<Interval> m_records;
 
-public:
+	void addNewTime(const std::string&);
 	AccumTime();
-	~AccumTime() = default;
+public:
+	static AccumTime& instance();
+	AccumTime(AccumTime const&) = delete;
+	void operator=(AccumTime const&) = delete;
 
 	/**
    * @brief Stop the time watcher, which sets the ending point for a time
    *  measure
    */
 	virtual void stop();
+	virtual void stop(const std::string&);
 
 	/**
    * @brief Obtain the elapsed time as the real number of seconds
@@ -75,6 +94,8 @@ public:
    	*/
 	virtual void reportFormat(ostream & os, const string& msg = "Total elapsed time: ");
 
+	void report(ostream & os);
+
 	/**
 	* @brief Compute the overhead between two calls
 	*/
@@ -83,6 +104,8 @@ public:
 	long overheadSeconds() { return m_overhead_seconds; }
 	long overheadMilliseconds() { return m_overhead_milliseconds; }
 	long overheadNanoseconds() { return m_overhead_nanoseconds; }
+
+	std::vector<Interval>& getRecords() { return m_records; }
 };
 
 #endif

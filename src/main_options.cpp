@@ -30,7 +30,7 @@ void setDefaults()
 }
 
 
-void processArgs(int argc, char ** argv)
+void processArgs(int argc, char **argv)
 {
 	while (true)
 	{
@@ -83,6 +83,7 @@ void processArgs(int argc, char ** argv)
 				{
 					omp_set_dynamic(0);
 					omp_set_num_threads(num_threads);
+                    std::cout << "OpenMP threads setted to " << num_threads << '\n';
 				}
 				break;
 			}

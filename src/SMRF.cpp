@@ -2,9 +2,10 @@
 // Created by miguelyermo on 23/7/20.
 //
 
+#include "AccumTime.h"
 #include "convexHull.hpp"
-#include "SMRF.h"
 #include "pseudoInverseMoorePenrose.h"
+#include "SMRF.h"
 
 #include <Eigen/src/Core/Matrix.h>
 #include <algorithm>
@@ -642,7 +643,9 @@ void DTMGrid::genMinSurface(Octree & octree, ConvexHull & hull)
 		}
 
 	printf("%d empty cells %.2f%%\n", numEmpty, numEmpty * 100.0 / size);
+	AccumTime::instance().start();
 	inpaintMS(emptyCells);
+	AccumTime::instance().stop("Inpaint Minimum Surface");
 }
 
 /** Perform morphological opening */
@@ -748,12 +751,24 @@ void DTMGrid::calcSlopes()
 void DTMGrid::computeDTM(std::vector<Lpoint> & points, Octree & octree, double * Min,
                          double * max)
 {
+	AccumTime::instance().start();
 	ConvexHull hull(points);
+	AccumTime::instance().stop("Computing Convex Hull");
 
+	// medición de inpaintMS no interior
 	genMinSurface(octree, hull);
+
+	AccumTime::instance().start();
 	identifyOutliers(points.size(), Min[2], max[2]);
+	AccumTime::instance().stop("Identifying outliers");
+
+	AccumTime::instance().start();
 	identifyCells(points.size());
+	AccumTime::instance().stop("Identifying cells");
+
+	AccumTime::instance().start();
 	inpaintBE();
+	AccumTime::instance().stop("Inpainting Bare Earth");
 }
 
 /** Improved Simple Morphological Filter (SMRF) (Pingel, 2013) */
