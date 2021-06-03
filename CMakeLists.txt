@@ -11,7 +11,7 @@ endif ()
 #-lstdc++fs : Experimental Filesystem (for some reason I cant link boost)
 set(EXTERNAL_LIBS "-lstdc++fs")
 
-add_compile_options("-Wall")
+#add_compile_options("-Wall")
 #add_compile_options("-g")
 
 # Includes

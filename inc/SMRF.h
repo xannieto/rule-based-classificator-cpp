@@ -157,8 +157,8 @@ class DTMGrid
 	{
 		std::ofstream f(filename);
 		f << std::fixed << std::setprecision(3);
-		for (size_t i = 0; i < rows; i++)
-			for (size_t j = 0; j < cols; j++)
+		for (int i = 0; i < rows; i++)
+			for (int j = 0; j < cols; j++)
 				if (cells[i][j].inhull)
 				{
 					f << cells[i][j].center[0] << " " << cells[i][j].center[1] << " " << cells[i][j].z
@@ -170,8 +170,8 @@ class DTMGrid
 	{
 		std::ofstream f(filename);
 		f << std::fixed << std::setprecision(3);
-		for (size_t i = 0; i < rows; i++)
-			for (size_t j = 0; j < cols; j++)
+		for (int i = 0; i < rows; i++)
+			for (int j = 0; j < cols; j++)
 				if (cells[i][j].inhull)
 				{
 					f << cells[i][j].z << " " << cells[i][j].id << "\n";
@@ -191,9 +191,9 @@ class DTMGrid
 		f << "CELLSIZE " << CELL_SIZE << "\n";
 		f << "NODATA_VALUE " << NO_DATA_VAL << "\n";
 		// NOTA: En C, for(i = grid->rows-1; i > 0; i--)
-		for (size_t i = 0; i < rows; i++)
+		for (int i = 0; i < rows; i++)
 		{
-			for (size_t j = 0; j < cols; j++)
+			for (int j = 0; j < cols; j++)
 			{
 				if (cells[i][j].z == std::numeric_limits<double>::max())
 				{

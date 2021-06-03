@@ -360,7 +360,8 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 	CheckValueCellFn chValueCellFn, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn, ChangeCellStateFn chCellStateFn)
 {
 	/* resolución paralela dos clusters */
-#pragma omp parallel for shared(clusters, neighbourCells)
+#pragma omp parallel for default(none) \
+shared(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCellStateFn)
 	for (int pos = 0; pos < clusters.size(); ++pos)
 	{
 		Cluster cluster(clusters.at(pos));
@@ -411,7 +412,6 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 					queueCells.emplace(*empty);
 				}
 			}
-
 			Eigen::MatrixXd M(columns.size() * 8, columns.size());
 			M.setZero();
 			Eigen::VectorXd b(columns.size() * 8);
@@ -720,8 +720,8 @@ void DTMGrid::calcSlopes()
 	double a = 0, b = 0, c = 0, d = 0, f = 0, g = 0, h = 0, I = 0, dzdx = 0, dzdy = 0,
 	       rise = 0;
 
-	for (size_t i = 0; i < rows; i++)
-		for (size_t j = 0; j < cols; j++)
+	for (int i = 0; i < rows; i++)
+		for (int j = 0; j < cols; j++)
 			if (!cells[i][j].empty || cells[i][j].inpainted)
 			{
 				std::vector<size_t> neighs = getNeighCells(i, j, 1);
