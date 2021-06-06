@@ -29,7 +29,7 @@ class Cfg
 {
 private:
 	std::map<std::string, std::string> m_parameters;
-	bool goodRead{true};
+	bool goodRead;
 
 public:
 	std::string m_fileName;
@@ -37,7 +37,7 @@ public:
 	Cfg() = default;
 
 	Cfg(const std::string& fileName)
-	: m_parameters{}, m_fileName{fileName}
+	: m_parameters{}, m_fileName{fileName}, goodRead{true}
 	{
 		std::ifstream config(m_fileName);
 		const std::string delimiter{"="};

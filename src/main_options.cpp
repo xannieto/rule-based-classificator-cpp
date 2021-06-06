@@ -3,7 +3,9 @@
 //
 
 #include "main_options.h"
+
 #include <bits/getopt_core.h>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <omp.h>
@@ -106,5 +108,18 @@ void processArgs(int argc, char **argv)
 				printHelp();
 				break;
 		}
+	}
+
+	if (mainOptions.inputFile.empty())
+	{
+		std::cout << "File not provided. Abort.\n";
+		printHelp();
+		exit(EXIT_FAILURE);
+	}
+
+	if (mainOptions.algorithm == Algorithm::EMPTY)
+	{
+		std::cout << "Setting SMRF as algorithm" << '\n';
+		mainOptions.algorithm = Algorithm::SMRF;
 	}
 }
