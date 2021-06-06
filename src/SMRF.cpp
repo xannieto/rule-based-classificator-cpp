@@ -361,7 +361,7 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 {
 	/* resolución paralela dos clusters */
 #pragma omp parallel for default(none) \
-shared(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCellStateFn)
+shared(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCellStateFn, cells)
 	for (int pos = 0; pos < clusters.size(); ++pos)
 	{
 		Cluster cluster(clusters.at(pos));
@@ -426,7 +426,7 @@ shared(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCell
 				int currentCol(columns.at(cell));
 
 				// obtemos os valores Z das celas veciñas
-				for (const auto& neighbour : local)
+				for (auto neighbour : local)
 				{
 					bool check(chValueCellFn(this, neighbour));
 
