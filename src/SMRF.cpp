@@ -361,7 +361,7 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 {
 	/* resolución paralela dos clusters */
 #pragma omp parallel for default(none) \
-shared(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCellStateFn, cells)
+private(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCellStateFn)
 	for (int pos = 0; pos < clusters.size(); ++pos)
 	{
 		Cluster cluster(clusters.at(pos));
