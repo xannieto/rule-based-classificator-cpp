@@ -111,6 +111,7 @@ int main(int argc, char **argv)
 
 		//step3 do filtering
 		std::vector<int> groundIndexes, offGroundIndexes;
+		csf.m_inputFile = mainOptions.inputFile;
 		csf.do_filtering(groundIndexes, offGroundIndexes, true);	
 		
 		AccumTime::instance().report(std::cout);
@@ -118,5 +119,6 @@ int main(int argc, char **argv)
 		csf.savePoints(groundIndexes, mainOptions.outputDirName + "/ground.txt");
 		csf.savePoints(offGroundIndexes,  mainOptions.outputDirName + "/non-ground.txt");
 	}
+	
 	return EXIT_SUCCESS;
 }

@@ -123,9 +123,9 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
 
     int  clothbuffer_d = 2;
     Vec3 origin_pos(
-        bbMin.x - clothbuffer_d *params.cloth_resolution,
+        bbMin.x - clothbuffer_d * params.cloth_resolution,
         bbMax.y + cloth_y_height,
-        bbMin.z - clothbuffer_d *params.cloth_resolution
+        bbMin.z - clothbuffer_d * params.cloth_resolution
     );
 
     int width_num = static_cast<int>(
@@ -184,7 +184,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     }
 
     if (exportCloth)
-        cloth.saveToFile("out/cloth_nodes.txt");
+        cloth.saveToFile(m_inputFile, "out/cloth_nodes.txt");
 
     c2cdist c2c(params.class_threshold);
 	AccumTime::instance().start();

@@ -118,6 +118,7 @@ public:
 
     Params params;
     int index;
+	std::string m_inputFile;
 };
 
 #endif // ifndef _CSF_H_

@@ -16,7 +16,13 @@
 // ======================================================================================
 
 #include "Cloth.h"
+#include "convexHull.hpp"
+#include "handlers.h"
+#include "octree.h"
+#include "point.h"
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 
 
 Cloth::Cloth(const Vec3& _origin_pos,
@@ -47,9 +53,9 @@ Cloth::Cloth(const Vec3& _origin_pos,
     // (width,-height,0) creating particles in a grid
     for (int i = 0; i < num_particles_width; i++) {
         for (int j = 0; j < num_particles_height; j++) {
-            Vec3 pos(origin_pos.f[0] + i *step_x,
+            Vec3 pos(origin_pos.f[0] + i * step_x,
                      origin_pos.f[1],
-                     origin_pos.f[2] + j *step_y);
+                     origin_pos.f[2] + j * step_y);
 
             // insert particle in column i at j'th row
             particles[j * num_particles_width + i]       = Particle(pos, time_step2);
@@ -379,6 +385,44 @@ void Cloth::saveToFile(std::string path) {
 
     for (std::size_t i = 0; i < particles.size(); i++) {
         f1 << std::fixed << std::setprecision(8) << particles[i].getPos().f[0] << "	"<< particles[i].getPos().f[2] << "	"<< -particles[i].getPos().f[1] << std::endl;
+    }
+
+    f1.close();
+}
+
+void Cloth::saveToFile(std::string inputFile, std::string ouputFile)
+{
+	std::string filepath = "cloth_nodes.txt";
+
+    if (ouputFile == "") {
+        filepath = "cloth_nodes.txt";
+    } else {
+        filepath = ouputFile;
+    }
+
+    std::ofstream f1(filepath.c_str());
+
+    if (!f1)
+        return;
+
+	// para separar o dtm das esquinas do bounding box
+	std::vector<Lpoint> points = readPointCloud(inputFile);
+	// Handle number of points
+	handleNumberOfPoints(points);
+	// Global Octree Creation
+	float  maxRadius = 0.0;
+	Vector center    = mbb(points, maxRadius);
+	Octree gOctree(center, maxRadius, points);
+	ConvexHull hull(points);
+
+	f1 << std::fixed << std::setprecision(8);
+    for (int i = 0; i < particles.size(); ++i)
+	{
+		Lpoint center(0, particles[i].getPos().f[0], particles[i].getPos().f[2], 0);
+		if (hull.inHull(center))
+		{
+        	f1 << particles[i].getPos().f[0] << ' ' << particles[i].getPos().f[2] << ' ' << -particles[i].getPos().f[1] << '\n';
+		}
     }
 
     f1.close();
