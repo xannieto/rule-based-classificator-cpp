@@ -124,7 +124,7 @@ class DTMGrid
 	void identifyCells(int numPts);
 	void inpaintBE();
 	void inpaintCellBE(int ci, int cj);
-	std::set<indexOfCell_t> getAdjCellsBE(int ci, int cj);
+	std::vector<indexOfCell_t> getAdjCellsBE(int ci, int cj);
 	void    clampNeighIdcs(int ci, int cj, int r, int min[2], int max[2]) const;
 	size_t              getNumAdjBE(int ci, int cj);
 	void    computeDtmZ(std::vector<Lpoint> & points, Octree & octree);
@@ -133,7 +133,7 @@ class DTMGrid
 	std::vector<size_t> getNeighCells(int ci, int cj, int r);
 	void    inpaintMS(std::vector<indexOfCell_t> & vectorOfEmptyCells);
 	void    inpaintCellMS(int ci, int cj);
-	std::set<indexOfCell_t> getAdjCellsMS(int ci, int cj);
+	std::vector<indexOfCell_t> getAdjCellsMS(int ci, int cj);
 	int     getNumAdjMS(int ci, int cj);
 	void    calcSlopes();
 	DTMGrid morphologicalOpening(int radius, int numPts);
@@ -146,11 +146,11 @@ class DTMGrid
 	using Cluster = std::vector<indexOfCell_t>;
 	using CheckValueCellFn = bool(*)(DTMGrid*, indexOfCell_t);
 	using ChangeCellStateFn = void(*)(DTMGrid*, indexOfCell_t&);
-	using ListNeighsFn = std::set<indexOfCell_t>(*)(DTMGrid*, std::set<indexOfCell_t>&);
-	using CheckNeighsFn = bool(*)(DTMGrid*, std::set<indexOfCell_t>&);
-	void createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<indexOfCell_t, std::set<indexOfCell_t>>& neighbourCells,
+	using ListNeighsFn = std::vector<indexOfCell_t>(*)(DTMGrid*, std::vector<indexOfCell_t>&);
+	using CheckNeighsFn = bool(*)(DTMGrid*, std::vector<indexOfCell_t>&);
+	void createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<indexOfCell_t, std::vector<indexOfCell_t>>& neighbourCells,
 		std::vector<Cluster>& clusters, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn);
-	void solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_t, std::set<indexOfCell_t>>& neighbourCells,
+	void solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_t, std::vector<indexOfCell_t>>& neighbourCells,
 		CheckValueCellFn chValueCellFn, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn, ChangeCellStateFn chCellStateFn);
 
 	void writeToFile(const std::string & filename)

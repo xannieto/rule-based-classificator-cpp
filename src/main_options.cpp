@@ -83,7 +83,6 @@ void processArgs(int argc, char **argv)
 				int num_threads( std::stoi(optarg) );
 				if (num_threads > 0)
 				{
-					omp_set_dynamic(0);
 					omp_set_num_threads(num_threads);
                     std::cout << "OpenMP threads setted to " << num_threads << '\n';
 				}

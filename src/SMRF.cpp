@@ -53,7 +53,7 @@
 namespace SMRF
 {
 
-constexpr double spring{ 0.707106781186547524 };
+constexpr double g_spring{ 0.707106781186547524 };
 
 void classify(std::vector<Lpoint> & points, DTMGrid & dtm)
 {
@@ -249,43 +249,43 @@ bool isDiagonal(int ci, int cj, int ei, int ej)
 }
 
 /** Get the adjacent cells for BE Surface */
-std::set<indexOfCell_t> DTMGrid::getAdjCellsBE(int ci, int cj)
+std::vector<indexOfCell_t> DTMGrid::getAdjCellsBE(int ci, int cj)
 {
 	int min[2], max[2];
 
 	clampNeighIdcs(ci, cj, 1, min, max);
 
-	std::set<indexOfCell_t> neighs{};
+	std::vector<indexOfCell_t> neighs{};
 
 	for (int i = min[0]; i <= max[0]; i++)
 		for (int j = min[1]; j <= max[1]; j++)
 		{
 			if ((i != ci || j != cj) && cells[i][j].inhull)
 			{
-				neighs.emplace(std::make_pair(i, j));
+				neighs.emplace_back(i, j);
 			}
 		}
 	return neighs;
 }
 
 /** Get the adjacent cells for Minimun Surface */
-std::set<indexOfCell_t> DTMGrid::getAdjCellsMS(int Ci, int Cj)
+std::vector<indexOfCell_t> DTMGrid::getAdjCellsMS(int Ci, int Cj)
 {
 	int min[2], max[2]; // range of index for neighbours
 
 	clampNeighIdcs(Ci, Cj, 1, min, max);
-	std::set<indexOfCell_t> neighs{};
+	std::vector<indexOfCell_t> neighs{};
 
 	for (int i = min[0]; i <= max[0]; i++)
 		for (int j = min[1]; j <= max[1]; j++)
 			if ( (i != Ci || j != Cj) && cells[i][j].inhull )
-				neighs.emplace(std::make_pair(i, j));
+				neighs.emplace_back(i, j);
 
 	return neighs;
 }
 
 /** Check if a set have at least one cell which is not object */
-bool checkFullObj(DTMGrid *grid, std::set<indexOfCell_t> & vec)
+bool checkFullObj(DTMGrid *grid, std::vector<indexOfCell_t> & vec)
 {
 	for(const auto& cell : vec)
 		if (!grid->cells[cell.first][cell.second].obj
@@ -298,17 +298,17 @@ bool checkFullObj(DTMGrid *grid, std::set<indexOfCell_t> & vec)
 }
 
 /** Filter the set taking object cells */
-std::set<indexOfCell_t> checkForObjCells(DTMGrid *grid, std::set<indexOfCell_t> & vec)
+std::vector<indexOfCell_t> checkForObjCells(DTMGrid *grid, std::vector<indexOfCell_t>& vec)
 {
-	std::set<indexOfCell_t> tmp{};
+	std::vector<indexOfCell_t> tmp{};
 	for (const auto& cell : vec)
 		if (grid->cells[cell.first][cell.second].obj && !grid->cells[cell.first][cell.second].inpainted)
-			tmp.emplace(cell);
+			tmp.emplace_back(cell);
 
 	return tmp;
 }
 
-void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<indexOfCell_t, std::set<indexOfCell_t>>& neighbourCells,
+void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<indexOfCell_t, std::vector<indexOfCell_t>>& neighbourCells,
 		std::vector<Cluster>& clusters, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn)
 {
 	std::vector<indexOfCell_t> remainingCells(inpaintCells);
@@ -356,19 +356,19 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 	}
 }
 
-void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_t, std::set<indexOfCell_t>>& neighbourCells,
+void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_t, std::vector<indexOfCell_t>>& neighbourCells,
 	CheckValueCellFn chValueCellFn, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn, ChangeCellStateFn chCellStateFn)
 {
+	std::vector<std::tuple<int, int, double>> changes{};
+	
 	/* resolución paralela dos clusters */
-#pragma omp parallel for default(none) \
-private(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCellStateFn)
 	for (int pos = 0; pos < clusters.size(); ++pos)
 	{
 		Cluster cluster(clusters.at(pos));
 		
 		while (!cluster.empty()) {
 			int col{};
-			std::map<indexOfCell_t, int> columns{};
+			std::vector<indexOfCell_t> columns{};
 			std::queue<indexOfCell_t> queueCells{};
 
 			queueCells.emplace(cluster.front());
@@ -402,7 +402,7 @@ private(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCel
 				std::erase(cluster, cell);
 				
 				// anotamos esa cela para despois usala no sistema de ecuacións
-				columns.emplace(cell, col++);
+				columns.emplace_back(cell);
 				
 				// lista de veciños do mesmo tipo da cela extraida
 				auto listNeighs(listNeighsFn(this, neighbours));
@@ -412,25 +412,31 @@ private(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCel
 					queueCells.emplace(*empty);
 				}
 			}
+
 			Eigen::MatrixXd M(columns.size() * 8, columns.size());
 			M.setZero();
 			Eigen::VectorXd b(columns.size() * 8);
 			b.setZero();
+			
+			auto columnBegin{columns.begin()};
+			auto columnEnd{columns.end()};
 
 			int currentRow{};
-			for (auto pair{columns.begin()}; pair != columns.end(); ++pair)
+			for (auto posCell = 0; posCell < columns.size(); ++posCell)
 			{
-				auto cell(pair->first);
+				auto cell(columns[posCell]);
 				auto local(neighbourCells.at(cell));
 
-				int currentCol(columns.at(cell));
+				int currentCol(posCell);
 
 				// obtemos os valores Z das celas veciñas
-				for (auto neighbour : local)
+				for (int posNeigh = 0; posNeigh < local.size(); ++posNeigh)
 				{
+					indexOfCell_t neighbour = local[posNeigh];
 					bool check(chValueCellFn(this, neighbour));
+					auto found(std::find(columnBegin, columnEnd, neighbour));
 
-					if (check && !columns.count(neighbour))
+					if (check && found == columnEnd)
 						continue;
 
 					double z(check ? 0.0 : cells[neighbour.first][neighbour.second].z);
@@ -440,17 +446,17 @@ private(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCel
 						// se o veciño é unha cela do mesmo tipo (obj, empty), debe estar restando no sistema
 						if (check /*&& adjacentCells.count(neighbour)*/)
 						{
-							M(currentRow, columns.at(neighbour)) = -spring; 
+							M(currentRow, std::distance(columnBegin, found)) = -g_spring; 
 						}
 
-						M(currentRow, currentCol) = spring;
-						z *= spring; 
+						M(currentRow, currentCol) = g_spring;
+						z *= g_spring; 
 					}
 					else
 					{
 						if (check /*&& adjacentCells.count(neighbour)*/)
 						{
-							M(currentRow, columns.at(neighbour)) = -1.0; 
+							M(currentRow, std::distance(columnBegin, found)) = -1.0; 
 						}
 						
 						M(currentRow, currentCol) = 1.0;
@@ -462,11 +468,10 @@ private(clusters, neighbourCells, listNeighsFn, chNeighsFn, chValueCellFn, chCel
 			
 			Eigen::VectorXd x = pseudoInverse(M) * b;
 
-			for (auto element{columns.begin()}; element != columns.end(); ++element)
+			for (int posCell = 0; posCell < columns.size(); ++posCell)
 			{
-				auto cell(element->first);
-				int currentCol = columns.at(cell);
-				cells[cell.first][cell.second].z = x(currentCol);
+				auto cell(columns[posCell]);
+				cells[cell.first][cell.second].z = x(posCell);
 				chCellStateFn(this, cell);
 			}
 		}
@@ -496,13 +501,13 @@ void DTMGrid::inpaintBE()
 		for (int j = 0; j < cols; ++j)
 			if (cells[i][j].inhull && cells[i][j].obj)
 			{
-				vectorOfObjCells.emplace_back(std::make_pair(i, j));
+				vectorOfObjCells.emplace_back(i, j);
 			}
 
 	const int numObj(vectorOfObjCells.size());
 
 	// collemos tódolas celas baleiras e almacenamos os seus veciños nunha lista
-	std::map<indexOfCell_t, std::set<indexOfCell_t>> neighbourOfObjCells{};
+	std::map<indexOfCell_t, std::vector<indexOfCell_t>> neighbourOfObjCells{};
 	// remainingCells contén as celas restantes para o inpainting (inicialmente todas)
 	
 	for (int pos = 0; pos < vectorOfObjCells.size(); ++pos)
@@ -547,7 +552,7 @@ bool areAdjacent(indexOfCell_t c1, indexOfCell_t c2)
 	return false;
 }
 
-bool checkFullEmpty(DTMGrid *grid, std::set<indexOfCell_t> & vec)
+bool checkFullEmpty(DTMGrid *grid, std::vector<indexOfCell_t> & vec)
 {
 	for(auto cell{vec.begin()}; cell != vec.end(); ++cell)
 		if (!grid->cells[cell->first][cell->second].empty
@@ -559,13 +564,13 @@ bool checkFullEmpty(DTMGrid *grid, std::set<indexOfCell_t> & vec)
 	return true;
 }
 
-std::set<indexOfCell_t> checkForEmptyCells(DTMGrid *grid, std::set<indexOfCell_t> & vec)
+std::vector<indexOfCell_t> checkForEmptyCells(DTMGrid *grid, std::vector<indexOfCell_t> & vec)
 {
-	std::set<indexOfCell_t> tmp{};
+	std::vector<indexOfCell_t> tmp{};
 
 	for (auto& cell : vec)
 		if (grid->cells[cell.first][cell.second].empty && !grid->cells[cell.first][cell.second].inpainted)
-			tmp.emplace(cell);
+			tmp.emplace_back(cell);
 
 	return tmp;
 }
@@ -587,7 +592,7 @@ void DTMGrid::inpaintMS(std::vector<indexOfCell_t>& vectorOfEmptyCells)
 	std::cout << "Inpainting... " << std::flush;
 
 	// collemos tódolas celas baleiras e almacenamos os seus veciños nunnha lista
-	std::map<indexOfCell_t, std::set<indexOfCell_t>> neighbourOfEmptyCells{};
+	std::map<indexOfCell_t, std::vector<indexOfCell_t>> neighbourOfEmptyCells{};
 
 	// TODO: paralelizar
 	for (int pos = 0; pos < vectorOfEmptyCells.size(); ++pos)

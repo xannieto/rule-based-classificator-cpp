@@ -12,7 +12,7 @@ endif ()
 set(EXTERNAL_LIBS "-lstdc++fs")
 
 #add_compile_options("-Wall")
-#add_compile_options("-g")
+add_compile_options("-O2")
 
 # Includes
 include_directories(inc)
