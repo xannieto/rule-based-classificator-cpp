@@ -138,7 +138,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
 
     std::cout << "[" << this->index << "] Configuring cloth..." << std::endl;
     std::cout << "[" << this->index << "]  - width: " << width_num << " "
-         << "height: " << height_num << std::endl;
+         << "height: " << height_num << '\n';
 
     Cloth cloth(
         origin_pos,
@@ -152,7 +152,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
         params.time_step
     );
 
-    std::cout << "[" << this->index << "] Rasterizing..." << std::endl;
+    std::cout << "[" << this->index << "] Rasterizing..." << '\n';
 	AccumTime::instance().start();
     Rasterization::RasterTerrian(cloth, point_cloud, cloth.getHeightvals());
 	AccumTime::instance().stop("Rasterize terrain");
@@ -160,7 +160,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     double time_step2 = params.time_step * params.time_step;
     double gravity    = 0.2;
 
-    std::cout << "[" << this->index << "] Simulating..." << std::endl;
+    std::cout << "[" << this->index << "] Simulating..." << '\n';
 	AccumTime::instance().start();
     cloth.addForce(Vec3(0, -gravity, 0) * time_step2);
 
@@ -177,7 +177,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     }
 	AccumTime::instance().stop("Cloth Simulation");
     if (params.bSloopSmooth) {
-        std::cout << "[" << this->index << "]  - post handle..." << std::endl;
+        std::cout << "[" << this->index << "]  - post handle..." << '\n';
 		AccumTime::instance().start();
         cloth.movableFilter();
 		AccumTime::instance().stop("Post handle");

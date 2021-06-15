@@ -359,8 +359,6 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_t, std::vector<indexOfCell_t>>& neighbourCells,
 	CheckValueCellFn chValueCellFn, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn, ChangeCellStateFn chCellStateFn)
 {
-	std::vector<std::tuple<int, int, double>> changes{};
-	
 	/* resolución paralela dos clusters */
 	for (int pos = 0; pos < clusters.size(); ++pos)
 	{
@@ -430,21 +428,31 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 				int currentCol(posCell);
 
 				// obtemos os valores Z das celas veciñas
+#pragma omp parallel
+{
+                #pragma omp single
 				for (int posNeigh = 0; posNeigh < local.size(); ++posNeigh)
 				{
-					indexOfCell_t neighbour = local[posNeigh];
-					bool check(chValueCellFn(this, neighbour));
-					auto found(std::find(columnBegin, columnEnd, neighbour));
+					bool check{false}, diagonal{false};
+                    std::vector<indexOfCell_t>::iterator found;
+                    indexOfCell_t neighbour = local[posNeigh];
+				#pragma omp task shared(check) depend(out: check)
+                    check = chValueCellFn(this, neighbour);
+                #pragma omp task shared(found) depend(out: found)
+					found = std::find(columnBegin, columnEnd, neighbour);
+                #pragma omp task shared(diagonal) depend(out: diagonal) 
+                    diagonal = isDiagonal(neighbour.first, neighbour.second, cell.first, cell.second);
 
+                #pragma omp taskwait depend(in: check, found)
 					if (check && found == columnEnd)
 						continue;
 
 					double z(check ? 0.0 : cells[neighbour.first][neighbour.second].z);
-
-					if (isDiagonal(neighbour.first, neighbour.second, cell.first, cell.second))
+                #pragma omp taskwait depend(in: diagonal)
+					if (diagonal)
 					{
 						// se o veciño é unha cela do mesmo tipo (obj, empty), debe estar restando no sistema
-						if (check /*&& adjacentCells.count(neighbour)*/)
+						if (check)
 						{
 							M(currentRow, std::distance(columnBegin, found)) = -g_spring; 
 						}
@@ -465,15 +473,22 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 					++currentRow;
 				}
 			}
+}
 			
 			Eigen::VectorXd x = pseudoInverse(M) * b;
-
+            
+#pragma omp parallel
+{
+        #pragma omp single
 			for (int posCell = 0; posCell < columns.size(); ++posCell)
 			{
 				auto cell(columns[posCell]);
+            #pragma omp task
 				cells[cell.first][cell.second].z = x(posCell);
-				chCellStateFn(this, cell);
+			#pragma omp task
+                chCellStateFn(this, cell);
 			}
+}
 		}
 	}
 }
