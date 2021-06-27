@@ -29,7 +29,7 @@ class Cfg
 {
 private:
 	std::map<std::string, std::string> m_parameters;
-	bool goodRead;
+	bool m_read;
 
 public:
 	std::string m_fileName;
@@ -37,13 +37,14 @@ public:
 	Cfg() = default;
 
 	Cfg(const std::string& fileName)
-	: m_parameters{}, m_fileName{fileName}, goodRead{true}
+	: m_parameters{}, m_fileName{fileName}, m_read{false}
 	{
 		std::ifstream config(m_fileName);
 		const std::string delimiter{"="};
 
 		if (config)
 		{
+			m_read = true;
 			while(config)
 			{
 				std::string line{};
@@ -57,11 +58,6 @@ public:
 
 				m_parameters.emplace(std::make_pair(key, value));
 			}
-		}
-		else
-		{
-			goodRead = false;
-			std::cout << "Cannot open for reading: " << m_fileName << '\n';
 		}
 
 		if (config.is_open())
@@ -79,9 +75,8 @@ public:
 	
 	bool isGoodRead()
 	{
-		return goodRead;
+		return m_read;
 	}
-
 };
 
 

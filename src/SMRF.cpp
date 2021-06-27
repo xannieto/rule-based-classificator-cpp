@@ -19,6 +19,7 @@
 #include <Eigen/Dense>
 #include <functional>
 #include <handlers.h>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <laspec.h>
@@ -26,9 +27,8 @@
 #include <map>
 #include <memory>
 #include <omp.h>
-#include <ranges>
 #include <ostream>
-#include <queue>
+#include <stack>
 #include <set>
 #include <utility>
 #include <vector>
@@ -316,17 +316,21 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 	while (!remainingCells.empty())
 	{
 		Cluster cluster{};
-		// checkObj: cola que contén as celas baleiras adxacentes pendentes de comprobar
+		// stackCheckCell: cola que contén as celas baleiras adxacentes pendentes de comprobar
 		// se teñen a súa vez máis celas adxacentes
-		std::queue<indexOfCell_t> queueCheckCell{};
+		std::stack<indexOfCell_t> stackCells{};
 
-		queueCheckCell.emplace(remainingCells.front());
+		stackCells.emplace(remainingCells[0]);
+		
 		// introducimos a primeira cela das que quedan por facer o inpainting
 		// bucle para buscar veciños
-		while (!queueCheckCell.empty())
+#pragma omp parallel
+{
+		#pragma omp single
+		while (!stackCells.empty())
 		{
-			auto cell(queueCheckCell.front());
-			queueCheckCell.pop();
+			auto& cell = stackCells.top();
+			stackCells.pop();
 
 			// evita que caia en bucle infinito: para que non volva a revisar a mesma cela
 			auto begin(remainingCells.begin());
@@ -336,7 +340,10 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 				continue;
 			}
 
-			auto neighbours(neighbourCells.at(cell));
+			std::vector<indexOfCell_t> neighbours;
+
+			#pragma omp task shared(neighbours)
+			neighbours = neighbourCells.at(cell);
 			
 			// quitamos esa cela da lista de pendentes por ver
 			std::erase(remainingCells, cell);
@@ -345,13 +352,16 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 			cluster.emplace_back(cell);
 			
             // lista de veciños do mesmo tipo da cela extraida
+			#pragma omp taskwait
 			auto listNeighs(listNeighsFn(this, neighbours));
 
-			for (auto empty{listNeighs.begin()}; empty != listNeighs.end(); ++empty)
+			for (int pos = 0; pos < listNeighs.size(); ++pos)
 			{
-				queueCheckCell.emplace(*empty);
+				auto& empty = listNeighs[pos];
+				stackCells.push(empty);
 			}
 		}
+}
 		clusters.emplace_back(cluster);
 	}
 }
@@ -362,23 +372,24 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 	/* resolución paralela dos clusters */
 	for (int pos = 0; pos < clusters.size(); ++pos)
 	{
-		Cluster cluster(clusters.at(pos));
+		Cluster cluster{clusters.at(pos)};
 		
-		while (!cluster.empty()) {
+		while (!cluster.empty())
+		{
 			int col{};
 			std::vector<indexOfCell_t> columns{};
-			std::queue<indexOfCell_t> queueCells{};
+			std::stack<indexOfCell_t> stackCells{};
 
-			queueCells.emplace(cluster.front());
+			stackCells.emplace(cluster[0]);
 			
-			while (!queueCells.empty())
+			while (!stackCells.empty())
 			{
-				auto cell(queueCells.front());
-				queueCells.pop();
+				auto& cell = stackCells.top();
+				stackCells.pop();
 
 				// evita que caia en bucle infinito: para que non volva a revisar a mesma cela
-				auto begin(cluster.begin());
-				auto end(cluster.end());
+				auto begin{cluster.begin()};
+				auto end{cluster.end()};
 				if (std::find(begin, end, cell) == end)
 				{	
 					continue;
@@ -391,7 +402,7 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 					{
 						std::erase(cluster, cell);
 						cluster.emplace_back(cell);
-						queueCells.emplace(cluster.front());
+						stackCells.emplace(cluster[0]);
 					}
 					continue;
 				}
@@ -405,36 +416,37 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 				// lista de veciños do mesmo tipo da cela extraida
 				auto listNeighs(listNeighsFn(this, neighbours));
 
-				for (auto empty{listNeighs.begin()}; empty != listNeighs.end(); ++empty)
+				for (int pos = 0; pos < listNeighs.size(); ++pos)
 				{
-					queueCells.emplace(*empty);
+					indexOfCell_t empty = listNeighs[pos];
+					stackCells.push(empty);
 				}
 			}
 
-			Eigen::MatrixXd M(columns.size() * 8, columns.size());
+			Eigen::MatrixXd M{columns.size() * 8, columns.size()};
 			M.setZero();
-			Eigen::VectorXd b(columns.size() * 8);
+			Eigen::VectorXd b{columns.size() * 8};
 			b.setZero();
 			
 			auto columnBegin{columns.begin()};
 			auto columnEnd{columns.end()};
 
 			int currentRow{};
-			for (auto posCell = 0; posCell < columns.size(); ++posCell)
+			for (int posCell = 0; posCell < columns.size(); ++posCell)
 			{
-				auto cell(columns[posCell]);
-				auto local(neighbourCells.at(cell));
+				auto cell{columns[posCell]};
+				auto local{neighbourCells.at(cell)};
 
-				int currentCol(posCell);
+				int currentCol{posCell};
 
 				// obtemos os valores Z das celas veciñas
 #pragma omp parallel
 {
-                #pragma omp single
+            #pragma omp single
 				for (int posNeigh = 0; posNeigh < local.size(); ++posNeigh)
 				{
 					bool check{false}, diagonal{false};
-                    std::vector<indexOfCell_t>::iterator found;
+                    std::vector<indexOfCell_t>::iterator found{};
                     indexOfCell_t neighbour = local[posNeigh];
 				#pragma omp task shared(check) depend(out: check)
                     check = chValueCellFn(this, neighbour);
@@ -442,13 +454,13 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 					found = std::find(columnBegin, columnEnd, neighbour);
                 #pragma omp task shared(diagonal) depend(out: diagonal) 
                     diagonal = isDiagonal(neighbour.first, neighbour.second, cell.first, cell.second);
-
-                #pragma omp taskwait depend(in: check, found)
+ 
+               #pragma omp taskwait 
 					if (check && found == columnEnd)
 						continue;
 
-					double z(check ? 0.0 : cells[neighbour.first][neighbour.second].z);
-                #pragma omp taskwait depend(in: diagonal)
+					double z{check ? 0.0 : cells[neighbour.first][neighbour.second].z};
+                
 					if (diagonal)
 					{
 						// se o veciño é unha cela do mesmo tipo (obj, empty), debe estar restando no sistema
@@ -462,14 +474,14 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 					}
 					else
 					{
-						if (check /*&& adjacentCells.count(neighbour)*/)
+						if (check)
 						{
 							M(currentRow, std::distance(columnBegin, found)) = -1.0; 
 						}
 						
 						M(currentRow, currentCol) = 1.0;
 					}
-					b(currentRow) = z;
+					b[currentRow] = z;
 					++currentRow;
 				}
 			}
@@ -479,14 +491,15 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
             
 #pragma omp parallel
 {
-        #pragma omp single
+        #pragma omp single nowait
 			for (int posCell = 0; posCell < columns.size(); ++posCell)
 			{
-				auto cell(columns[posCell]);
-            #pragma omp task
-				cells[cell.first][cell.second].z = x(posCell);
-			#pragma omp task
-                chCellStateFn(this, cell);
+				#pragma omp task
+				{
+					auto cell{columns[posCell]};
+					cells[cell.first][cell.second].z = x[posCell];
+                	chCellStateFn(this, cell);
+				}
 			}
 }
 		}
@@ -519,7 +532,7 @@ void DTMGrid::inpaintBE()
 				vectorOfObjCells.emplace_back(i, j);
 			}
 
-	const int numObj(vectorOfObjCells.size());
+	const int numObj{static_cast<int>(vectorOfObjCells.size())};
 
 	// collemos tódolas celas baleiras e almacenamos os seus veciños nunha lista
 	std::map<indexOfCell_t, std::vector<indexOfCell_t>> neighbourOfObjCells{};
@@ -527,7 +540,7 @@ void DTMGrid::inpaintBE()
 	
 	for (int pos = 0; pos < vectorOfObjCells.size(); ++pos)
 	{
-		auto cell(vectorOfObjCells.at(pos));
+		auto cell{vectorOfObjCells.at(pos)};
 		neighbourOfObjCells.emplace(cell, getAdjCellsBE(cell.first, cell.second));
 	}
 	
@@ -612,7 +625,7 @@ void DTMGrid::inpaintMS(std::vector<indexOfCell_t>& vectorOfEmptyCells)
 	// TODO: paralelizar
 	for (int pos = 0; pos < vectorOfEmptyCells.size(); ++pos)
 	{
-		auto cell(vectorOfEmptyCells.at(pos));
+		auto& cell{vectorOfEmptyCells.at(pos)};
 		neighbourOfEmptyCells.emplace(cell, getAdjCellsMS(cell.first, cell.second));
 	}
 
@@ -632,7 +645,6 @@ void DTMGrid::inpaintMS(std::vector<indexOfCell_t>& vectorOfEmptyCells)
 /** Generate a minimun surface with the lowest cell points */
 void DTMGrid::genMinSurface(Octree & octree, ConvexHull & hull)
 {
-	int numEmpty = 0;
 	Lpoint center(0, 0, 0, 0);
 	std::vector<indexOfCell_t> emptyCells{};
 
@@ -658,11 +670,13 @@ void DTMGrid::genMinSurface(Octree & octree, ConvexHull & hull)
 			else
 			{
 				emptyCells.emplace_back(std::make_pair(i, j));
-				numEmpty++;
 			}
 		}
 
-	printf("%d empty cells %.2f%%\n", numEmpty, numEmpty * 100.0 / size);
+	int numEmpty{static_cast<int>(emptyCells.size())};
+
+	std::cout << std::setprecision(2);
+	std::cout << numEmpty << " empty cells " << numEmpty * 100.0 / size << "%\n";
 	AccumTime::instance().start();
 	inpaintMS(emptyCells);
 	AccumTime::instance().stop("Inpaint Minimum Surface");
@@ -768,7 +782,7 @@ void DTMGrid::calcSlopes()
 }
 
 
-void DTMGrid::computeDTM(std::vector<Lpoint> & points, Octree & octree, double * Min,
+void DTMGrid::computeDTM(std::vector<Lpoint>& points, Octree & octree, double * Min,
                          double * max)
 {
 	AccumTime::instance().start();
@@ -807,7 +821,6 @@ DTMGrid smrf(std::vector<Lpoint> & points, Octree & octree, double min[3], doubl
 	dtm.writeToFile(outDir + "/dtm.xyz");
 	dtm.createDTM(outDir + "/dtm.asc");
 
-	//	createDTM(minSurface);
 	classify(points, dtm);
 
 	return dtm;

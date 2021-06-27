@@ -19,6 +19,7 @@
 #define RULE_BASED_CLASSIFIER_CPP_CONVEXHULL_HPP
 
 #include <algorithm>
+#include <iostream>
 #include <point.h>
 #include <vector>
 
@@ -27,10 +28,11 @@ class ConvexHull
 private:
   	std::vector<Lpoint*> points_{};
   	std::vector<Lpoint*> vertices_{};
+	
   	double area_{};
 
 public:
-	explicit ConvexHull(std::vector<Lpoint*> & points) : points_(points)
+	explicit ConvexHull(std::vector<Lpoint*>& points) : points_(points)
   	{
 	  	vertices_ = buildHull(points_);
 		area_ = polyArea(vertices_);
@@ -39,15 +41,19 @@ public:
     // NOTA: Conservar hasta que se haga un rework donde se lean los puntos directamente
     // a punteros. Si en algún momento el array de puntos exterior se destruye, estos
 	// punteros dejan de tener validez.
-	explicit ConvexHull(std::vector<Lpoint> & points)
+	explicit ConvexHull(std::vector<Lpoint>& points)
 	{
+		
 		for (auto & p : points)
     	{
 			points_.push_back(&p);
 		}
+		
 
 		vertices_ = buildHull(points_);
+				std::cout << "Vertex done!\n";
 		area_ = polyArea(vertices_);
+				std::cout << "Area done!\n";
 	}
 
 	static std::vector<Lpoint*> buildHull(std::vector<Lpoint*> & points)
@@ -60,7 +66,7 @@ public:
     	if (n <= 3) {std::cout << "Convex Hull cannot be computed with less than 3 points"; return points;}
 
     	// Reserve memory for the convex hull
-    	std::vector<Lpoint*> H(2*n);
+    	std::vector<Lpoint*> H(2 * n);
 
     	// Sort Points (When overloading < operator in Lpoint, sort does strange things) // Solution (Ruben): I'm sorting
     	// pointer address, no actual points.
