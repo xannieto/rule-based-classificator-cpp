@@ -43,17 +43,13 @@ public:
 	// punteros dejan de tener validez.
 	explicit ConvexHull(std::vector<Lpoint>& points)
 	{
-		
 		for (auto & p : points)
     	{
 			points_.push_back(&p);
 		}
 		
-
 		vertices_ = buildHull(points_);
-				std::cout << "Vertex done!\n";
 		area_ = polyArea(vertices_);
-				std::cout << "Area done!\n";
 	}
 
 	static std::vector<Lpoint*> buildHull(std::vector<Lpoint*> & points)
@@ -71,7 +67,7 @@ public:
     	// Sort Points (When overloading < operator in Lpoint, sort does strange things) // Solution (Ruben): I'm sorting
     	// pointer address, no actual points.
     	std::sort(points.begin(), points.end(), sortPoint);
-
+			
     	// Build lower hull
     	for (size_t i = 0; i < n; i++)
     	{
@@ -82,8 +78,8 @@ public:
 		// Build upper hull
 		for (size_t i = n-1, t = k+1; i > 0; --i)
 		{
-		while (k >= t && crossProduct(H[k - 2], H[k - 1], points[i - 1]) <= 0) k--;
-		H[k++] = points[i-1];
+			while (k >= t && crossProduct(H[k - 2], H[k - 1], points[i - 1]) <= 0) k--;
+			H[k++] = points[i-1];
 		}
 
 		H.resize(k - 1);
@@ -107,7 +103,7 @@ public:
     	return (A->x() - O->x()) * (B->y() - O->y()) - (A->y() - O->y()) * (B->x() - O->x());
   	}
 
-  static inline double polyArea(std::vector<Lpoint*> & points)
+  static inline double polyArea(const std::vector<Lpoint*> & points)
 	/**
 	* Compute the area of a polynomial given the list of ordered vertices. The last vertex of the list must be the same as
 	* the first one
@@ -123,7 +119,7 @@ public:
 		return area;
 	}
 
-	static inline bool sortPoint(Lpoint * p1, Lpoint * p2)
+	static inline bool sortPoint(const Lpoint* p1, const Lpoint* p2)
 	/**
 	* Sorting of points lexicographically (by x coordinate and, if tied, by y coordinate)
 	* @param p1
@@ -131,10 +127,10 @@ public:
 	* @return
 	*/
 	{
-		return (p1->x() < p2->x() || (p1->x() == p2->x() && p1->x() < p2->y()));
+		return p1->x() < p2->x();
 	}
 
-	inline bool inHull(Lpoint & p)
+	inline bool inHull(const Lpoint & p)
 	{
 		for (size_t i = 0; i < vertices_.size() - 1; i++)
 		{
