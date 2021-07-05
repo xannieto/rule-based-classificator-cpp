@@ -40,7 +40,8 @@ set(SRC_FILES
 	src/point_cloud.cpp
 	src/Rasterization.cpp
 	src/XYZReader.cpp
-	src/AccumTime.cpp)
+	src/AccumTime.cpp
+	src/filter.cpp)
 
 set(INC_FILES
     inc/handlers.h
@@ -61,7 +62,8 @@ set(INC_FILES
 	inc/point_cloud.h
 	inc/Vec3.h
 	inc/XYZReader.h
-	inc/AccumTime.h)
+	inc/AccumTime.h
+	inc/filter.h)
 
 add_executable(dtm.out ${SRC_FILES} ${INC_FILES})
 

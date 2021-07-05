@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <omp.h>
 #include <point.h>
 #include <vector>
 
@@ -69,14 +70,14 @@ public:
     	std::sort(points.begin(), points.end(), sortPoint);
 			
     	// Build lower hull
-    	for (size_t i = 0; i < n; i++)
+    	for (std::size_t i = 0; i < n; i++)
     	{
       		while (k >= 2 && crossProduct(H[k - 2], H[k - 1], points[i]) <= 0) k--;
       		H[k++] = points[i];
     	}
 
 		// Build upper hull
-		for (size_t i = n-1, t = k+1; i > 0; --i)
+		for (std::size_t i = n - 1, t = k + 1; i > 0; --i)
 		{
 			while (k >= t && crossProduct(H[k - 2], H[k - 1], points[i - 1]) <= 0) k--;
 			H[k++] = points[i-1];
@@ -91,7 +92,7 @@ public:
 		return area_;
 	}
 
-	static inline double crossProduct(const Lpoint * O, const Lpoint * A, const Lpoint * B)
+	static double crossProduct(const Lpoint * O, const Lpoint * A, const Lpoint * B)
 	/**
 	* Vectorial product of two vectors formed by OA and OB
 	* @param O
@@ -103,7 +104,7 @@ public:
     	return (A->x() - O->x()) * (B->y() - O->y()) - (A->y() - O->y()) * (B->x() - O->x());
   	}
 
-  static inline double polyArea(const std::vector<Lpoint*> & points)
+	static double polyArea(const std::vector<Lpoint*> & points)
 	/**
 	* Compute the area of a polynomial given the list of ordered vertices. The last vertex of the list must be the same as
 	* the first one
@@ -119,7 +120,7 @@ public:
 		return area;
 	}
 
-	static inline bool sortPoint(const Lpoint* p1, const Lpoint* p2)
+	static bool sortPoint(const Lpoint* p1, const Lpoint* p2)
 	/**
 	* Sorting of points lexicographically (by x coordinate and, if tied, by y coordinate)
 	* @param p1
@@ -130,7 +131,7 @@ public:
 		return p1->x() < p2->x();
 	}
 
-	inline bool inHull(const Lpoint & p)
+	bool inHull(const Lpoint & p)
 	{
 		for (size_t i = 0; i < vertices_.size() - 1; i++)
 		{

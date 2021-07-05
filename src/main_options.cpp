@@ -16,19 +16,20 @@ main_options mainOptions{};
 void printHelp()
 {
 	std::cout
-	    << " -h: Show this message\n"
-		   " -a: Choose the algorithm (SMRF, CSF)\n"
+		<< " -a: Choose the algorithm (SMRF, CSF)\n"
+		   " -f: Path to config file\n"
+	       " -h: Show this message\n"
 	       " -i: Path to input file\n"
 		   " -o: Path to output file\n"
 		   " -t: Set the number of threads for OpenMP\n"
-	       " -n <--num-points>     : Number of points to be read\n"
-	       " --dtm-file: Path to the dtm file, if existing\n";
+	       " -n <--num-points>     : Number of points to be read\n";
 	exit(1);
 }
 
 void setDefaults()
 {
 	if (!mainOptions.userOutputDirName) mainOptions.outputDirName = "out";
+	mainOptions.algorithm = Algorithm::SMRF;
 }
 
 
@@ -51,6 +52,11 @@ void processArgs(int argc, char **argv)
 					mainOptions.algorithm = Algorithm::CSF;
 				else if (algorithm == "SMRF")
 					mainOptions.algorithm = Algorithm::SMRF;
+				break;
+			}
+			case 'f':
+			{
+				mainOptions.configFile = std::string(optarg);
 				break;
 			}
 			case 'h':
@@ -116,9 +122,13 @@ void processArgs(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+	if (mainOptions.configFile.empty())
+	{
+		std::cout << "Config file not provided. Using default parameters\n";
+	}
+
 	if (mainOptions.algorithm == Algorithm::EMPTY)
 	{
-		std::cout << "Setting SMRF as algorithm" << '\n';
-		mainOptions.algorithm = Algorithm::SMRF;
+		std::cout << "Setted SMRF as default algorithm" << '\n';
 	}
 }

@@ -36,6 +36,7 @@ class main_options
 	unsigned char userOutputDirName{};
 	std::string   outputDirName{};
 	Algorithm	  algorithm{Algorithm::EMPTY};
+	std::string   configFile{};
 
 	// Numerical parameters
 	bool         userNumPoints{};
@@ -47,7 +48,7 @@ class main_options
 extern main_options mainOptions;
 
 // Define short options
-const char * const short_opts = "a:h:i:n:o:t:";
+const char * const short_opts = "a:f:h:i:n:o:t:";
 
 // Define long options
 const option long_opts[] = {

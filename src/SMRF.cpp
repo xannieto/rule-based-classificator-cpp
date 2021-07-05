@@ -7,7 +7,6 @@
 #include "pseudoInverseMoorePenrose.h"
 #include "SMRF.h"
 
-#include <Eigen/src/Core/Matrix.h>
 #include <algorithm>
 #include <boost/exception/exception.hpp>
 #include <cmath>
@@ -54,6 +53,7 @@ namespace SMRF
 {
 
 constexpr double g_spring{ 0.707106781186547524 };
+constexpr unsigned g_max_size{ 128 };
 
 void classify(std::vector<Lpoint> & points, DTMGrid & dtm)
 {
@@ -183,20 +183,20 @@ void DTMGrid::computeDtmZ(std::vector<Lpoint> & points, Octree & octree)
 }
 
 /** Compare pairs by value (descending order) */
-/*static int pairCmpDesc(const void * p1, const void * p2)
+static int pairCmpDesc(const void * p1, const void * p2)
 {
 	int v1 = ((Pair *) p1)->value;
 	int v2 = ((Pair *) p2)->value;
 	return v2 - v1;
-}*/
+}
 
-/*static int cmpX(const void * a, const void * b)
+static int cmpX(const void * a, const void * b)
 {
 	double v1 = ((struct Coordinate *) a)->value;
 	double v2 = ((struct Coordinate *) b)->value;
 
 	return (v1 > v2) - (v1 < v2);
-}*/
+}
 
 extern DTMGrid * createGridDTM(double * min, double * max, int numPts, double cs)
 {
@@ -204,7 +204,6 @@ extern DTMGrid * createGridDTM(double * min, double * max, int numPts, double cs
 	double    r    = cs / 2.0;
 	DTMGrid * grid = nullptr;
 
-	//grid         = (DTMGrid *) malloc(sizeof(DTMGrid));
 	grid         = new DTMGrid;
 	grid->min[0] = ceil(min[0]);
 	grid->min[1] = ceil(min[1]);
@@ -369,10 +368,10 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_t, std::vector<indexOfCell_t>>& neighbourCells,
 	CheckValueCellFn chValueCellFn, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn, ChangeCellStateFn chCellStateFn)
 {
-	/* resolución paralela dos clusters */
-	for (int pos = 0; pos < clusters.size(); ++pos)
+	/* resolución non paralela dos clusters */
+	for (auto pos{clusters.begin()}; pos != clusters.end(); ++pos)
 	{
-		Cluster cluster{clusters.at(pos)};
+		Cluster cluster{*pos};
 		
 		while (!cluster.empty())
 		{
@@ -382,7 +381,7 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 
 			stackCells.emplace(cluster[0]);
 			
-			while (!stackCells.empty())
+			while (!stackCells.empty() && columns.size() < g_max_size)
 			{
 				auto& cell = stackCells.top();
 				stackCells.pop();
@@ -416,10 +415,9 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 				// lista de veciños do mesmo tipo da cela extraida
 				auto listNeighs(listNeighsFn(this, neighbours));
 
-				for (int pos = 0; pos < listNeighs.size(); ++pos)
+				for (auto neigh{listNeighs.begin()}; neigh != listNeighs.end(); ++neigh)
 				{
-					indexOfCell_t empty = listNeighs[pos];
-					stackCells.push(empty);
+					stackCells.push(*neigh);
 				}
 			}
 
@@ -432,12 +430,12 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 			auto columnEnd{columns.end()};
 
 			int currentRow{};
-			for (int posCell = 0; posCell < columns.size(); ++posCell)
+			for (std::size_t posCell{}; posCell < columns.size(); ++posCell)
 			{
 				auto cell{columns[posCell]};
 				auto local{neighbourCells.at(cell)};
 
-				int currentCol{posCell};
+				int currentCol(posCell);
 
 				// obtemos os valores Z das celas veciñas
 #pragma omp parallel
@@ -520,7 +518,6 @@ void changeObjToFalse(DTMGrid* grid, indexOfCell_t& cell)
 /** Inpaint Bare Earth */
 void DTMGrid::inpaintBE()
 {
-	std::cout << "Inpainting... " << std::flush;
 	std::vector<indexOfCell_t> vectorOfObjCells{};
 
 	// assign column for every cell
@@ -533,6 +530,8 @@ void DTMGrid::inpaintBE()
 			}
 
 	const int numObj{static_cast<int>(vectorOfObjCells.size())};
+	std::cout << numObj << " obj cells " << numObj * 100.0 / size << "%\n";
+	std::cout << "Inpainting... " << std::flush;
 
 	// collemos tódolas celas baleiras e almacenamos os seus veciños nunha lista
 	std::map<indexOfCell_t, std::vector<indexOfCell_t>> neighbourOfObjCells{};

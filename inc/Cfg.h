@@ -29,18 +29,31 @@ class Cfg
 {
 private:
 	std::map<std::string, std::string> m_parameters;
+	const std::string delimiter{"="};
 	bool m_read;
 
 public:
 	std::string m_fileName;
 
-	Cfg() = default;
+	Cfg() 
+	: m_parameters{}, m_read{false}, m_fileName{""}
+	{
+	}
 
 	Cfg(const std::string& fileName)
 	: m_parameters{}, m_fileName{fileName}, m_read{false}
 	{
-		std::ifstream config(m_fileName);
-		const std::string delimiter{"="};
+		readFile(m_fileName);
+	}
+
+	bool readFile(const std::string& inputFile)
+	{
+		if (m_read)
+		{
+			m_read = false;
+			m_parameters.erase(m_parameters.begin(), m_parameters.end());
+		}
+		std::ifstream config(inputFile);
 
 		if (config)
 		{
@@ -62,6 +75,8 @@ public:
 
 		if (config.is_open())
 			config.close();
+
+		return m_read;
 	}
 
 	std::string getValue(const std::string& key)
