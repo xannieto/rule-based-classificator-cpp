@@ -166,18 +166,6 @@ class DTMGrid
 				}
 	}
 
-	void writeToFileForCompare(const std::string & filename)
-	{
-		std::ofstream f(filename);
-		f << std::fixed << std::setprecision(3);
-		for (int i = 0; i < rows; i++)
-			for (int j = 0; j < cols; j++)
-				if (cells[i][j].inhull)
-				{
-					f << cells[i][j].z << " " << cells[i][j].id << "\n";
-				}
-	}
-
 	void createDTM(const std::string & filename)
 	{
 		std::ofstream f(filename);

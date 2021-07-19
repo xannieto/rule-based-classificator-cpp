@@ -18,14 +18,15 @@
 #define DLL_IMPLEMENT
 
 #include "AccumTime.h"
-#include "CSF.h"
-#include "XYZReader.h"
-#include "Vec3.h"
-#include "Cloth.h"
-#include "Rasterization.h"
 #include "c2cdist.h"
-#include <fstream>
+#include "Cloth.h"
+#include "CSF.h"
+#include "main_options.h"
+#include "Vec3.h"
+#include "XYZReader.h"
+#include "Rasterization.h"
 
+#include <fstream>
 
 CSF::CSF(int index) {
     params.bSloopSmooth     = true;
@@ -184,7 +185,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     }
 
     if (exportCloth)
-        cloth.saveToFile(m_inputFile, "out/cloth_nodes.txt");
+        cloth.saveToFile(m_inputFile, mainOptions.outputDirName + "/cloth_nodes.txt");
 
     c2cdist c2c(params.class_threshold);
 	AccumTime::instance().start();

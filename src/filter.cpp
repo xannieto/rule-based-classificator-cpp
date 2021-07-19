@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -18,10 +19,12 @@ void doSMRF(Cfg& config)
 		std::istringstream cell_size(config.getValue("cell_size"));
 		std::istringstream max_slope(config.getValue("max_slope"));
 		std::istringstream max_window_size(config.getValue("max_window_size"));
+		std::istringstream max_height(config.getValue("max_height"));
 
 		cell_size >> SMRF::CELL_SIZE;
 		max_slope >> SMRF::MAX_SLOPE;
 		max_window_size >> SMRF::MAX_WINDOW_SIZE;
+		max_height >> SMRF::MAX_HEIGHT;
 	}
 
 	std::vector<Lpoint> points = readPointCloud(mainOptions.inputFile);
@@ -37,8 +40,6 @@ void doSMRF(Cfg& config)
 	double min[3], max[3];
 	SMRF::getMinMaxCoordinates(points, min, max);
 	SMRF::DTMGrid dtm = SMRF::smrf(points, gOctree, min, max);
-
-	dtm.writeToFileForCompare(mainOptions.outputDirName + "/smrf_for_compare.txt");
 	
 	AccumTime::instance().report(std::cout);
 }
@@ -95,6 +96,17 @@ void doCSF(Cfg& config)
 	csf.do_filtering(groundIndexes, offGroundIndexes, true);	
 	
 	AccumTime::instance().report(std::cout);
+
+	int total = groundIndexes.size() + offGroundIndexes.size();
+	std::cout << std::setprecision(2);
+	std::cout << "Ground: " << groundIndexes.size()
+			  << " ("
+	          << static_cast<double>(groundIndexes.size()) / total * 100.0
+			  << "%)\n"; 
+	std::cout << "Non-ground: " << offGroundIndexes.size()
+			  << " ("
+	          << static_cast<double>(offGroundIndexes.size()) / total * 100.0
+			  << "%)\n";
 
 	csf.savePoints(groundIndexes, mainOptions.outputDirName + "/ground.txt");
 	csf.savePoints(offGroundIndexes,  mainOptions.outputDirName + "/non-ground.txt");

@@ -65,6 +65,6 @@ set(INC_FILES
 	inc/AccumTime.h
 	inc/filter.h)
 
-add_executable(dtm.out ${SRC_FILES} ${INC_FILES})
+add_executable(rule_based_classifier_cpp.out ${SRC_FILES} ${INC_FILES})
 
-target_link_libraries(dtm.out ${EXTERNAL_LIBS})
+target_link_libraries(rule_based_classifier_cpp.out ${EXTERNAL_LIBS})

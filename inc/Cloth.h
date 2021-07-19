@@ -43,19 +43,18 @@
 #ifdef _WIN32
 # include <windows.h>
 #endif // ifdef _WIN32
-#include <math.h>
-#include <vector>
-#include <iostream>
-#include <omp.h>
-#include <sstream>
-#include <list>
-#include <cmath>
-#include <string>
-#include <queue>
-
-#include "Vec3.h"
 #include "Particle.h"
-// #include <boost/progress.hpp>
+#include "Vec3.h"
+
+#include <cmath>
+#include <iostream>
+#include <list>
+#include <omp.h>
+#include <queue>
+#include <sstream>
+#include <string>
+#include <vector>
+
 // post processing is only for connected component which is large than 50
 #define MAX_PARTICLE_FOR_POSTPROCESSIN    50
 

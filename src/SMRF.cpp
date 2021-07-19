@@ -4,31 +4,25 @@
 
 #include "AccumTime.h"
 #include "convexHull.hpp"
+#include "handlers.h"
+#include "laspec.h"
 #include "pseudoInverseMoorePenrose.h"
 #include "SMRF.h"
 
 #include <algorithm>
-#include <boost/exception/exception.hpp>
-#include <cmath>
-#include <cstddef>
-#include <cstdio>
-#include <ctime> 
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 #include <functional>
-#include <handlers.h>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-#include <laspec.h>
 #include <limits>
 #include <map>
 #include <memory>
 #include <omp.h>
 #include <ostream>
 #include <stack>
-#include <set>
 #include <utility>
 #include <vector>
 
@@ -63,7 +57,7 @@ void classify(std::vector<Lpoint> & points, DTMGrid & dtm)
 
 	f << std::fixed << std::setprecision(3);
 
-	printf("Labeling points...\n");
+	std::cout << "Labeling points...\n";
 
 	for (Lpoint & p : points)
 	{
@@ -834,7 +828,6 @@ DTMGrid::DTMGrid(double * min, double * max, int numPts_, double cs)
 	min[1] = ceil(min[1]);
 	cols   = ceil((floor(max[0]) - min[0]) / cs);
 	rows   = ceil((floor(max[1]) - min[1]) / cs);
-	printf("Cols: %d, Rows: %d\n", cols, rows);
 	size   = rows * cols;
 	numPts = numPts_;
 	ci.resize(numPts);
@@ -854,6 +847,8 @@ DTMGrid::DTMGrid(double * min, double * max, int numPts_, double cs)
 			cells[i][j].z         = std::numeric_limits<double>::max();
 		}
 	}
+
+	std::cout << "Cols: " << cols << ", Rows: " <<  rows << "\n";
 }
 
 // Copy Constructor
@@ -874,8 +869,7 @@ void DTMGrid::identifyOutliers(int numPts_, double minZ, double maxZ)
 	double  maxHeight = 0;
 	DTMGrid oInvMinSurface;
 
-	printf("Identifying outliers... ");
-	fflush(stdout);
+	std::cout << "Identifying outliers... " << std::flush;
 
 	DTMGrid invMinSurface = *this;
 
@@ -891,7 +885,7 @@ void DTMGrid::identifyOutliers(int numPts_, double minZ, double maxZ)
 				cells[i][j].obj = true;
 				count++;
 			}
-	printf("%d outliers\n", count);
+	std::cout << count << " outliers\n";
 }
 
 void DTMGrid::identifyCells(int numPts_)
@@ -908,7 +902,8 @@ void DTMGrid::identifyCells(int numPts_)
 		maxHeight = MAX_SLOPE * (float) window * CELL_SIZE;
 
 #if DEBUG
-		printf("SMRF w=%d/%d h=%.2lf...\n", window, maxWindow, maxHeight);
+		std::cout << std::setprecision(2);
+		std::cout << "SMRF w=" << window << "/" << maxWindow << " h=" << maxHeight << "...\n";
 #endif
 
 		thisSurface = lastSurface.morphologicalOpening(window, numPts_);

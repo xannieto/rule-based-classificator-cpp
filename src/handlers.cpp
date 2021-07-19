@@ -4,7 +4,6 @@
 
 #include "handlers.h"
 #include <boost/algorithm/string.hpp>
-#include <cstdlib>
 #include <dirent.h>
 #include "point_cloud.h"
 #include <fstream>

@@ -15,13 +15,14 @@
 // limitations under the License.
 // ======================================================================================
 
-#include "XYZReader.h"
 #include "handlers.h"
-#include <sstream>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
+#include "XYZReader.h"
+
 #include <cstdlib>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 
 /*** CSF ***/
@@ -34,7 +35,7 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 	{
 		std::cout << "Cannot open file "
 		          << fname
-				  << " for reading." << '\n';
+				  << " for reading.\n";
 		exit(1);
 	}
 
@@ -111,7 +112,7 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 		break;
 
 	default:
-		std::cout << "Unrecognized format." << '\n';
+		std::cout << "Unrecognized format.\n";
 		exit(1);
 	}
 }

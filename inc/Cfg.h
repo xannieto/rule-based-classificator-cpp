@@ -18,11 +18,11 @@
 #ifndef _CFG_H_
 #define _CFG_H_
 #include <algorithm>
-#include <iostream>  
-#include <string>  
 #include <fstream> 
+#include <iostream>  
 #include <istream>
 #include <map>
+#include <string>  
 #include <utility>
 
 class Cfg

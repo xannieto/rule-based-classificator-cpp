@@ -38,6 +38,7 @@
 #include <vector>
 #include <string>
 #include "point_cloud.h"
+#include "main_options.h"
 
 
 struct Params {
