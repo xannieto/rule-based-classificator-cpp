@@ -317,9 +317,6 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 		
 		// introducimos a primeira cela das que quedan por facer o inpainting
 		// bucle para buscar veciños
-#pragma omp parallel
-{
-		#pragma omp single
 		while (!stackCells.empty())
 		{
 			auto& cell = stackCells.top();
@@ -335,7 +332,6 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 
 			std::vector<indexOfCell_t> neighbours;
 
-			#pragma omp task shared(neighbours)
 			neighbours = neighbourCells.at(cell);
 			
 			// quitamos esa cela da lista de pendentes por ver
@@ -345,7 +341,6 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 			cluster.emplace_back(cell);
 			
             // lista de veciños do mesmo tipo da cela extraida
-			#pragma omp taskwait
 			auto listNeighs(listNeighsFn(this, neighbours));
 
 			for (int pos = 0; pos < listNeighs.size(); ++pos)
@@ -354,7 +349,6 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 				stackCells.push(empty);
 			}
 		}
-}
 		clusters.emplace_back(cluster);
 	}
 }
@@ -432,22 +426,15 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 				int currentCol(posCell);
 
 				// obtemos os valores Z das celas veciñas
-#pragma omp parallel
-{
-            #pragma omp single
 				for (int posNeigh = 0; posNeigh < local.size(); ++posNeigh)
 				{
 					bool check{false}, diagonal{false};
                     std::vector<indexOfCell_t>::iterator found{};
                     indexOfCell_t neighbour = local[posNeigh];
-				#pragma omp task shared(check) depend(out: check)
                     check = chValueCellFn(this, neighbour);
-                #pragma omp task shared(found) depend(out: found)
 					found = std::find(columnBegin, columnEnd, neighbour);
-                #pragma omp task shared(diagonal) depend(out: diagonal) 
                     diagonal = isDiagonal(neighbour.first, neighbour.second, cell.first, cell.second);
  
-               #pragma omp taskwait 
 					if (check && found == columnEnd)
 						continue;
 
@@ -477,23 +464,15 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 					++currentRow;
 				}
 			}
-}
 			
 			Eigen::VectorXd x = pseudoInverse(M) * b;
             
-#pragma omp parallel
-{
-        #pragma omp single nowait
 			for (int posCell = 0; posCell < columns.size(); ++posCell)
 			{
-				#pragma omp task
-				{
-					auto cell{columns[posCell]};
-					cells[cell.first][cell.second].z = x[posCell];
-                	chCellStateFn(this, cell);
-				}
+				auto cell{columns[posCell]};
+				cells[cell.first][cell.second].z = x[posCell];
+				chCellStateFn(this, cell);
 			}
-}
 		}
 	}
 }
