@@ -77,10 +77,16 @@ iterations=500
 class_threshold=0.5
 time_step=0.65
 ```
+The `slop_smooth` is a boolean parameter that indicates if the CSF have to do a posprocesing to detect and solve errors in the DTM,
+`cloth_resolution` indicates the size of cells, `rigidness` for movement of particles with values between 1 (less rigidness) and 3 (more), `iterations` set
+the maximum iterations, `class_threshold` for classification in Bare Earth or Object and `time_step` controls the movement of a particles in a iteration.
 
 SMRF:
 ```
 cell_size=1.0
 max_slope=0.15
 max_window_size=16.0
+max_height=0.5
 ```
+The `cell_size` indicates the size of cells, `max_slope` is a percentage value of the slope that controls the classification of points, `max_window_size` sets 
+the maximum size of window for the image opening and `max_height` sets an elevation scale and helps to detect bare earth points.
