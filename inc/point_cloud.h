@@ -34,28 +34,21 @@
 #ifndef _POINT_CLOUD_H_
 #define _POINT_CLOUD_H_
 
+#include "point.h"
 #include <vector>
 
-namespace csf {
-
-struct Point {
-    union {
-        struct {
-            double x;
-			double y;
-			double z;
-        };
-		double u[3];
-    };
-
-    Point() : x(0), y(0), z(0) {}
-	Point(double p_x, double p_y, double p_z) : x{p_x}, y{p_y}, z{p_z} {}
-};
-
-class PointCloud : public std::vector<Point>{
+namespace csf
+{
+class PointCloud
+{
 public:
+    std::vector<Lpoint> m_points;
 
-    void computeBoundingBox(Point& bbMin, Point& bbMax);
+public:  
+    PointCloud() = default;
+    PointCloud(std::vector<Lpoint>&);
+
+    void computeBoundingBox(Lpoint& bbMin, Lpoint& bbMax);
 };
 
 }

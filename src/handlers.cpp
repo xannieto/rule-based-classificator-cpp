@@ -5,7 +5,6 @@
 #include "handlers.h"
 #include <boost/algorithm/string.hpp>
 #include <dirent.h>
-#include "point_cloud.h"
 #include <fstream>
 #include <iostream>
 #include <main_options.h>

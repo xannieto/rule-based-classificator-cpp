@@ -72,7 +72,7 @@ public:
     ~CSF();
 
     // set pointcloud from vector
-    void setPointCloud(std::vector<csf::Point> points);
+    void setPointCloud(std::vector<Lpoint> points);
     // set point cloud from a one-dimentional array. it defines a N*3 point cloud by the given rows.
     void setPointCloud(double *points, int rows);
 
@@ -95,7 +95,7 @@ public:
 
     // get size of pointcloud
     std::size_t size() {
-        return point_cloud.size();
+        return point_cloud.m_points.size();
     }
 
     // PointCloud set pointcloud

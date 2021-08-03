@@ -10,7 +10,7 @@
 std::vector<Lpoint*> filterGroundRoadPoints(std::vector<Lpoint> & points)
 {
   std::vector<Lpoint*> grPoints;
-  for (Lpoint & p : points)
+  for (Lpoint& p : points)
   {
     if (p.getClass() == GROUND || p.getClass() == ROAD)
     {

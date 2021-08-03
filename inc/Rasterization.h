@@ -36,7 +36,7 @@ public:
     double static findHeightValByNeighbor(Particle *p);
     double static findHeightValByScanline(Particle *p, Cloth& cloth);
 
-    void static   RasterTerrian(Cloth          & cloth,
+    void static   RasterTerrain(Cloth          & cloth,
                                 csf::PointCloud& pc,
                                 std::vector<double> & heightVal);
 };

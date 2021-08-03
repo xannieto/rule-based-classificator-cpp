@@ -61,7 +61,7 @@ typedef std::pair<int, int> indexOfCell_t;
 
 class DTMCell
 {
-	public:
+public:
 	unsigned int id{};
 	bool         obj;
 	bool         empty;
@@ -70,6 +70,15 @@ class DTMCell
 	double       center[2];
 	double       z;
 	double       slope;
+
+	double slope_2FD{};
+	double slope_3FDWRD{};
+	double slope_3FD{};
+	double slope_3FDWRSD{};
+	double slope_FFD{};
+	double slope_MAX{};
+	double slope_D{};
+	double slope_ARCGIS{};
 
 	std::vector<DTMCell *> neighbors{};
 
@@ -86,15 +95,6 @@ class DTMCell
 		out << cell.center[0] << " " << cell.center[1] << " " << cell.z;
 		return out;
 	}
-
-	double slope_2FD{};
-	double slope_3FDWRD{};
-	double slope_3FD{};
-	double slope_3FDWRSD{};
-	double slope_FFD{};
-	double slope_MAX{};
-	double slope_D{};
-	double slope_ARCGIS{};
 };
 
 class DTMGrid
@@ -108,7 +108,8 @@ class DTMGrid
 	std::vector<int>                  ci;             // indice i da cela á que pertence un punto dado
 	std::vector<int>                  cj;             // indice j da cela á que pertence un punto dado
 	std::array<double, 2>             min{};
-	std::vector<std::vector<DTMCell>> cells{};
+	//std::vector<std::vector<DTMCell>> cells{};
+	std::vector<DTMCell> cells{};
 
 	// Constructors
 	// Default Constructor
@@ -138,7 +139,6 @@ class DTMGrid
 	void    calcSlopes();
 	DTMGrid morphologicalOpening(int radius, int numPts);
 
-
 	// Methods
 
 	void computeCellNeighbors();
@@ -159,10 +159,10 @@ class DTMGrid
 		f << std::fixed << std::setprecision(3);
 		for (int i = 0; i < rows; i++)
 			for (int j = 0; j < cols; j++)
-				if (cells[i][j].inhull)
+				if (cells[i * cols + j].inhull)
 				{
-					f << cells[i][j].center[0] << " " << cells[i][j].center[1] << " " << cells[i][j].z
-					  << " " << cells[i][j].slope << "\n";
+					f << cells[i * cols + j].center[0] << " " << cells[i * cols + j].center[1] << " " << cells[i * cols + j].z
+					  << " " << cells[i * cols + j].slope << "\n";
 				}
 	}
 
@@ -174,8 +174,8 @@ class DTMGrid
 
 		f << "NCOLS " << cols << "\n";
 		f << "NROWS " << rows << "\n";
-		f << "XLLCENTER " << cells[0][0].center[0] << "\n";
-		f << "YLLCENTER " << cells[0][0].center[1] << "\n";
+		f << "XLLCENTER " << cells[0].center[0] << "\n";
+		f << "YLLCENTER " << cells[0].center[1] << "\n";
 		f << "CELLSIZE " << CELL_SIZE << "\n";
 		f << "NODATA_VALUE " << NO_DATA_VAL << "\n";
 		// NOTA: En C, for(i = grid->rows-1; i > 0; i--)
@@ -183,13 +183,13 @@ class DTMGrid
 		{
 			for (int j = 0; j < cols; j++)
 			{
-				if (cells[i][j].z == std::numeric_limits<double>::max())
+				if (cells[i * cols + j].z == std::numeric_limits<double>::max())
 				{
 					f << NO_DATA_VAL << " ";
 				}
 				else
 				{
-					f << cells[i][j].z << " ";
+					f << cells[i * cols + j].z << " ";
 				}
 			}
 			f << "\n";

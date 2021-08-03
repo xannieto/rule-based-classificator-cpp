@@ -51,21 +51,21 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 		while(file >> x >> y >> z)
 		{	
 			//en CSF orixinal estaba así, non sei se se trata dun erro ou é así
-			pointcloud.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(x, -z, y);
 		}
 		break;
 
 	case 6:
 		while (file >> x >> y >> z >> I >> gId >> classification)
 		{
-			pointcloud.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(x, -z, y);
 		}
 		break;
 
 	case 7:
 		while (file >> x >> y >> z >> realZ >> I >> gId >> classification)
 		{
-			pointcloud.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(x, -z, y);
 		}
 		break;
 
@@ -73,8 +73,8 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 		// Data from https://www.itc.nl/isprs/wgIII-3/filtertest/downloadsites/
 		while (file >> x >> y >> z >> I >> xx >> yy >> zz >> II)
 		{
-			pointcloud.emplace_back(x, -z, y);
-			pointcloud.emplace_back(xx, -zz, yy);
+			pointcloud.m_points.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(xx, -zz, yy);
 		}
 		break;
 
@@ -82,7 +82,7 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 	case 9:
 		while (file >> x >> y >> z >> I >> rn >> nor >> dir >> edge >> classification)
 		{
-			pointcloud.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(x, -z, y);
 		}
 		break;
 
@@ -91,7 +91,7 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 		while (file >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
 			classification >> gId)
 		{
-			pointcloud.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(x, -z, y);
 		}
 		break;
 
@@ -99,7 +99,7 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 		while (file >> x >> y >> z >> realZ >> I >> rn >> nor >> dir >> edge >>
 			classification >> gId)
 		{
-			pointcloud.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(x, -z, y);
 		}
 		break;
 
@@ -107,7 +107,7 @@ void read_xyz(std::string& fname, csf::PointCloud& pointcloud)
 		while (file >> x >> y >> z >> I >> rn >> nor >> dir >> edge >>
 			classification >> r >> g >> b)
 		{
-			pointcloud.emplace_back(x, -z, y);
+			pointcloud.m_points.emplace_back(x, -z, y);
 		}
 		break;
 

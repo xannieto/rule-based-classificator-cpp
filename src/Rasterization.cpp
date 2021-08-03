@@ -99,13 +99,13 @@ double Rasterization::findHeightValByNeighbor(Particle *p) {
     return MIN_INF;
 }
 
-void Rasterization::RasterTerrian(Cloth          & cloth,
+void Rasterization::RasterTerrain(Cloth          & cloth,
                                   csf::PointCloud& pc,
                                   std::vector<double> & heightVal) {
 
-    for (std::size_t i = 0; i < pc.size(); i++) {
-        double pc_x = pc[i].x;
-        double pc_z = pc[i].z;
+    for (std::size_t i = 0; i < pc.m_points.size(); i++) {
+        double pc_x = pc.m_points[i].x();
+        double pc_z = pc.m_points[i].z();
 
         double deltaX = pc_x - cloth.origin_pos.f[0];
         double deltaZ = pc_z - cloth.origin_pos.f[2];
@@ -123,7 +123,7 @@ void Rasterization::RasterTerrian(Cloth          & cloth,
 
             if (pc2particleDist < pt->tmpDist) {
                 pt->tmpDist            = pc2particleDist;
-                pt->nearestPointHeight = pc[i].y;
+                pt->nearestPointHeight = pc.m_points[i].y();
                 pt->nearestPointIndex  = i;
             }
         }

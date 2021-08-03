@@ -26,9 +26,9 @@ void c2cdist::calCloud2CloudDist(Cloth           & cloth,
     groundIndexes.resize(0);
     offGroundIndexes.resize(0);
 
-    for (std::size_t i = 0; i < pc.size(); i++) {
-        double pc_x = pc[i].x;
-        double pc_z = pc[i].z;
+    for (std::size_t i = 0; i < pc.m_points.size(); i++) {
+        double pc_x = pc.m_points[i].x();
+        double pc_z = pc.m_points[i].z();
 
         double deltaX = pc_x - cloth.origin_pos.f[0];
         double deltaZ = pc_z - cloth.origin_pos.f[2];
@@ -50,7 +50,7 @@ void c2cdist::calCloud2CloudDist(Cloth           & cloth,
               cloth.getParticle(col3, row3)->pos.f[1] * (1 - subdeltaX) * subdeltaZ +
               cloth.getParticle(col2, row2)->pos.f[1] * subdeltaX * subdeltaZ +
               cloth.getParticle(col1, row1)->pos.f[1] * subdeltaX * (1 - subdeltaZ);
-        double height_var = fxy - pc[i].y;
+        double height_var = fxy - pc.m_points[i].y();
 
         if (std::fabs(height_var) < class_treshold) {
             groundIndexes.push_back(i);

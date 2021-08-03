@@ -119,7 +119,7 @@ void Filter::doFilter()
 	{
 		cfg.readFile(mainOptions.configFile);
 	}
-
+	
 	// create the directory
 	createDirectory(mainOptions.outputDirName);
 

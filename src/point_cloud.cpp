@@ -17,24 +17,47 @@
 
 #include "point_cloud.h"
 
+csf::PointCloud::PointCloud(std::vector<Lpoint>& pc)
+: m_points(pc)
+{
+}
 
-void csf::PointCloud::computeBoundingBox(Point& bbMin, Point& bbMax) {
-    if (empty()) {
-        bbMin = bbMax = Point();
+void csf::PointCloud::computeBoundingBox(Lpoint& bbMin, Lpoint& bbMax) {
+    if (m_points.empty()) {
+        bbMin = bbMax = Lpoint();
         return;
     }
 
-    bbMin = bbMax = at(0);
+    bbMin = bbMax = m_points.at(0);
 
-    for (std::size_t i = 1; i < size(); i++) { // zwm
-        const csf::Point& P = at(i);
+    for (std::size_t i = 1; i < m_points.size(); i++) { // zwm
+        const Lpoint& P = m_points.at(i);
+        
+        if (P.x() < bbMin.x())
+        {
+            bbMin.setX(P.x());
+        }
+        else if (P.x() > bbMax.x())
+        {
+            bbMax.setX(P.x());
+        }
 
-        for (int d = 0; d < 3; ++d) {
-            if (P.u[d] < bbMin.u[d]) {
-                bbMin.u[d] = P.u[d];
-            } else if (P.u[d] > bbMax.u[d]) {
-                bbMax.u[d] = P.u[d];
-            }
+        if (P.y() < bbMin.y())
+        {
+            bbMin.setY(P.y());
+        }
+        else if (P.y() > bbMax.y())
+        {
+            bbMax.setY(P.y());
+        }
+
+        if (P.z() < bbMin.z())
+        {
+            bbMin.setX(P.x());
+        }
+        else if (P.z() > bbMax.z())
+        {
+            bbMax.setZ(P.z());
         }
     }
 }
