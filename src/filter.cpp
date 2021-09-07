@@ -79,12 +79,12 @@ void doCSF(Cfg& config)
 		std::string time_step(config.getValue("time_step"));
 		
 		//step 2 parameter setting
-		csf.params.bSloopSmooth = ss;
-		csf.params.class_threshold = atof(class_threshold.c_str());
-		csf.params.cloth_resolution = atof(cloth_resolution.c_str());
-		csf.params.interations = atoi(iterations.c_str());
-		csf.params.rigidness = atoi(rigidness.c_str());
-		csf.params.time_step = atof(time_step.c_str());
+		csf.m_params.bSloopSmooth = ss;
+		csf.m_params.class_threshold = atof(class_threshold.c_str());
+		csf.m_params.cloth_resolution = atof(cloth_resolution.c_str());
+		csf.m_params.interations = atoi(iterations.c_str());
+		csf.m_params.rigidness = atoi(rigidness.c_str());
+		csf.m_params.time_step = atof(time_step.c_str());
 	}
 
 	//step 1 Input the point cloud

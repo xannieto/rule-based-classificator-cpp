@@ -39,7 +39,6 @@ set(SRC_FILES
 	src/Particle.cpp
 	src/point_cloud.cpp
 	src/Rasterization.cpp
-	src/XYZReader.cpp
 	src/AccumTime.cpp
 	src/filter.cpp)
 
@@ -61,7 +60,6 @@ set(INC_FILES
 	inc/Particle.h
 	inc/point_cloud.h
 	inc/Vec3.h
-	inc/XYZReader.h
 	inc/AccumTime.h
 	inc/filter.h)
 

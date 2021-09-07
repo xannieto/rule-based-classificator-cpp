@@ -30,24 +30,24 @@
 #include <fstream>
 
 CSF::CSF(int index) {
-    params.bSloopSmooth     = true;
-    params.time_step        = 0.65;
-    params.class_threshold  = 0.5;
-    params.cloth_resolution = 1;
-    params.rigidness        = 3;
-    params.interations      = 500;
+    m_params.bSloopSmooth     = true;
+    m_params.time_step        = 0.65;
+    m_params.class_threshold  = 0.5;
+    m_params.cloth_resolution = 1;
+    m_params.rigidness        = 3;
+    m_params.interations      = 500;
 
-    this->index = index;
+    m_index = index;
 }
 
 CSF::CSF() {
-	params.bSloopSmooth = true;
-	params.time_step = 0.65;
-	params.class_threshold = 0.5;
-	params.cloth_resolution = 1;
-	params.rigidness = 3;
-	params.interations = 500;
-	this->index = 0;
+	m_params.bSloopSmooth = true;
+	m_params.time_step = 0.65;
+	m_params.class_threshold = 0.5;
+	m_params.cloth_resolution = 1;
+	m_params.rigidness = 3;
+	m_params.interations = 500;
+	m_index = 0;
 }
 
 CSF::~CSF()
@@ -121,7 +121,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
                        std::vector<int>& offGroundIndexes,
                        bool              exportCloth) {
     // Terrain
-    std::cout << "[" << this->index << "] Configuring terrain..." << std::endl;
+    std::cout << "[" << this->m_index << "] Configuring terrain..." << std::endl;
     Lpoint bbMin, bbMax;
 
 	AccumTime::instance().start();
@@ -132,49 +132,49 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
 
     int  clothbuffer_d = 2;
     Vec3 origin_pos(
-        bbMin.x() - clothbuffer_d * params.cloth_resolution,
+        bbMin.x() - clothbuffer_d * m_params.cloth_resolution,
         bbMax.y() + cloth_y_height,
-        bbMin.z() - clothbuffer_d * params.cloth_resolution
+        bbMin.z() - clothbuffer_d * m_params.cloth_resolution
     );
 
     int width_num = static_cast<int>(
-        std::floor((bbMax.x() - bbMin.x()) / params.cloth_resolution)
+        std::floor((bbMax.x() - bbMin.x()) / m_params.cloth_resolution)
     ) + 2 * clothbuffer_d;
 
     int height_num = static_cast<int>(
-        std::floor((bbMax.z() - bbMin.z()) / params.cloth_resolution)
+        std::floor((bbMax.z() - bbMin.z()) / m_params.cloth_resolution)
     ) + 2 * clothbuffer_d;
 
-    std::cout << "[" << this->index << "] Configuring cloth..." << std::endl;
-    std::cout << "[" << this->index << "]  - width: " << width_num << " "
+    std::cout << "[" << this->m_index << "] Configuring cloth..." << std::endl;
+    std::cout << "[" << this->m_index << "]  - width: " << width_num << " "
          << "height: " << height_num << '\n';
 
     Cloth cloth(
         origin_pos,
         width_num,
         height_num,
-        params.cloth_resolution,
-        params.cloth_resolution,
+        m_params.cloth_resolution,
+        m_params.cloth_resolution,
         0.3,
         9999,
-        params.rigidness,
-        params.time_step
+        m_params.rigidness,
+        m_params.time_step
     );
 
-    std::cout << "[" << this->index << "] Rasterizing..." << '\n';
+    std::cout << "[" << this->m_index << "] Rasterizing..." << '\n';
 	AccumTime::instance().start();
     Rasterization::RasterTerrain(cloth, point_cloud, cloth.getHeightvals());
 	AccumTime::instance().stop("Rasterize terrain");
 
-    double time_step2 = params.time_step * params.time_step;
+    double time_step2 = m_params.time_step * m_params.time_step;
     double gravity    = 0.2;
 
-    std::cout << "[" << this->index << "] Simulating..." << '\n';
+    std::cout << "[" << this->m_index << "] Simulating..." << '\n';
 	AccumTime::instance().start();
     cloth.addForce(Vec3(0, -gravity, 0) * time_step2);
 
     // boost::progress_display pd(params.interations);
-    for (int i = 0; i < params.interations; i++) {
+    for (int i = 0; i < m_params.interations; i++) {
         double maxDiff = cloth.timeStep();
         cloth.terrCollision();
 		//params.class_threshold / 100
@@ -185,8 +185,8 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
         // pd++;
     }
 	AccumTime::instance().stop("Cloth Simulation");
-    if (params.bSloopSmooth) {
-        std::cout << "[" << this->index << "]  - post handle..." << '\n';
+    if (m_params.bSloopSmooth) {
+        std::cout << "[" << this->m_index << "]  - post handle..." << '\n';
 		AccumTime::instance().start();
         cloth.movableFilter();
 		AccumTime::instance().stop("Post handle");
@@ -195,7 +195,7 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     //if (exportCloth)
     cloth.saveToFile(m_inputFile, mainOptions.outputDirName + "/cloth_nodes.txt");
 
-    c2cdist c2c(params.class_threshold);
+    c2cdist c2c(m_params.class_threshold);
 	AccumTime::instance().start();
     c2c.calCloud2CloudDist(cloth, point_cloud, groundIndexes, offGroundIndexes);
 	AccumTime::instance().stop("Cloud to cloud distance");

@@ -117,8 +117,8 @@ private:
 
 public:
 
-    Params params;
-    int index;
+    Params m_params;
+    int m_index;
 	std::string m_inputFile;
 };
 
