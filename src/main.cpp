@@ -1,15 +1,10 @@
 #include <iostream>
 
 #include "filter.h"
-#include "handlers.h"
-#include "main_options.h"
 
 int main(int argc, char** argv)
 {
-	setDefaults();
-	processArgs(argc, argv);
-
-	Filter filter{};
+	Filter filter{argc, argv};
 	filter.doFilter();
 	
 	return EXIT_SUCCESS;

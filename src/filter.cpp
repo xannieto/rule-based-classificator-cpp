@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "AccumTime.h"
-#include "Cfg.h"
 #include "Cloth.h"
 #include "filter.h"
 #include "handlers.h"
@@ -11,8 +10,13 @@
 #include "octree.h"
 #include "SMRF.h"
 
+Filter::Filter(int argc, char**argv)
+{
+	setDefaults();
+	processArgs(argc, argv);
+}
 
-void doSMRF(Cfg& config)
+void Filter::doSMRF(Cfg& config)
 {
 	if (config.isGoodRead())
 	{
@@ -44,7 +48,7 @@ void doSMRF(Cfg& config)
 	AccumTime::instance().report(std::cout);
 }
 
-void doCSF(Cfg& config)
+void Filter::doCSF(Cfg& config)
 {
 	CSF csf{};
 

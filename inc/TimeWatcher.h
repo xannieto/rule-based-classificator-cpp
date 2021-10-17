@@ -75,7 +75,7 @@ class TimeWatcher
    * @brief Stop the time watcher, which sets the ending point for a time
    *  measure
    */
-	virtual void stop();
+	void stop();
 
 	/**
    * @brief Obtain the elapsed time as the difference between the last
@@ -90,27 +90,27 @@ class TimeWatcher
    * @brief Obtain the elapsed time as the real number of seconds
    * @return Elapsed time in real seconds
    */
-	virtual double getElapsedDecimalSeconds();
+	double getElapsedDecimalSeconds();
 	/**
    * @brief Obtain the elapsed time as the integer number of seconds
    * @return Elapsed time in integer seconds
    */
-	virtual long getElapsedSeconds();
+	long getElapsedSeconds();
 	/**
    * @brief Obtain the elapsed time as the integer number of milliseconds
    * @return Elapsed time in integer milliseconds
    */
-	virtual long getElapsedMillis();
+	long getElapsedMillis();
 	/**
    * @brief Obtain the elapsed time as the integer number of nanoseconds
    * @return Elapsed time in integer nanoseconds
    */
-	virtual long getElapsedNanos();
+	long getElapsedNanos();
 	/**
    * @brief Obtain the elapsed time as a string with format "HH:MM:SS"
    * @return Elapsed time as "HH:MM:SS" string
    */
-	virtual string getElapsedFormat();
+	string getElapsedFormat();
 
 	/**
    * @brief Report elapsed seconds through specified output stream
@@ -118,14 +118,14 @@ class TimeWatcher
    * @param msg Message to be shown by the report. By default
    *  "Total elapsed seconds: "
    */
-	virtual void reportSeconds(ostream & os, const string& msg = "Total elapsed seconds: ");
+	void reportSeconds(ostream & os, const string& msg = "Total elapsed seconds: ");
 	/**
    * @brief Report elapsed milliseconds through specified output stream
    * @param os Output stream for the report
    * @param msg Message to be shown by the report. By default
    *  "Total elapsed milliseconds: "
    */
-	virtual void reportMillis(ostream & os, const string& msg = "Total elapsed milliseconds: ");
+	void reportMillis(ostream & os, const string& msg = "Total elapsed milliseconds: ");
 	/**
    * @brief Report elapsed time through specified output stream using
    *  "HH:MM:SS" format
@@ -133,7 +133,7 @@ class TimeWatcher
    * @param msg Message to be shown by the report. By default
    *  "Total elapsed time: "
    */
-	virtual void reportFormat(ostream & os, const string& msg = "Total elapsed time: ");
+	void reportFormat(ostream & os, const string& msg = "Total elapsed time: ");
 
 	protected:
 	// ***  INNER METHODS  *** //

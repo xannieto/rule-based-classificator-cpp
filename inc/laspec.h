@@ -31,7 +31,7 @@
 #define GRASS 101
 #define TREE 105*/
 
-inline constexpr unsigned char UNCLASSIFIED    { 0 };
+inline constexpr unsigned char UNCLASSIFIED   { 0 };
 inline constexpr unsigned char UNKNOWN        { 1 };
 inline constexpr unsigned char GROUND         { 2 };
 inline constexpr unsigned char LOW_VEG        { 3 };

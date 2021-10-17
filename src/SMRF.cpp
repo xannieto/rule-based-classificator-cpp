@@ -63,10 +63,10 @@ void classify(std::vector<Lpoint> & points, DTMGrid & dtm)
 		p.setClass(p.z() < dtmZ + MAX_HEIGHT ? GROUND : UNCLASSIFIED);
 		count += p.getClass() == GROUND;
 		f << p.x() << " " << p.y() << " " << p.z() << " "
-		  << p.I() << " " << p.rn() << " " << p.nor() << " " << p.dir() << " " << p.edge()
-		  << " " << p.getClass() << "\n";
+			<< p.I() << " " << p.rn() << " " << p.nor() << " " << p.dir() << " " << p.edge()
+			<< " " << p.getClass() << "\n";
 	}
-	std::cout << "Ground " << count / double(points.size()) * 100 << "\n";
+	std::cout << "Ground " << count / double(points.size()) * 100 << "%\n";
 }
 
 
@@ -110,28 +110,26 @@ inline std::vector<size_t> DTMGrid::getNeighCells(int Ci, int Cj, int r)
 
 double DTMGrid::nnInterpolation(Lpoint& p)
 {
+	int    Ci = 0, Cj = 0, i = 0, j = 0, n = 0;
+	double dist = 0, minDist = 0, z = 0;
+	Ci                         = ci[p.id()];
+	Cj                         = cj[p.id()];
+	z                          = cells[Ci * cols + Cj].z;
+	minDist                    = distP2C(p, &cells[Ci * cols + Cj]);
+	std::vector<size_t> neighs = getNeighCells(Ci, Cj, 1);
+	for (n = 0; n < neighs.size(); n += 2)
 	{
-		int    Ci = 0, Cj = 0, i = 0, j = 0, n = 0;
-		double dist = 0, minDist = 0, z = 0;
-		Ci                         = ci[p.id()];
-		Cj                         = cj[p.id()];
-		z                          = cells[Ci * cols + Cj].z;
-		minDist                    = distP2C(p, &cells[Ci * cols + Cj]);
-		std::vector<size_t> neighs = getNeighCells(Ci, Cj, 1);
-		for (n = 0; n < neighs.size(); n += 2)
+		i = neighs[n];
+		j = neighs[n + 1];
+		if ((int) cells[i * cols + j].z == NO_DATA_VAL) continue;
+		dist = distP2C(p, &cells[i * cols + j]);
+		if (dist < minDist)
 		{
-			i = neighs[n];
-			j = neighs[n + 1];
-			if ((int) cells[i * cols + j].z == NO_DATA_VAL) continue;
-			dist = distP2C(p, &cells[i * cols + j]);
-			if (dist < minDist)
-			{
-				z       = cells[i * cols + j].z;
-				minDist = dist;
-			}
+			z       = cells[i * cols + j].z;
+			minDist = dist;
 		}
-		return z;
 	}
+	return z;
 }
 
 double DTMGrid::slopeInterpolation(Lpoint & p)
@@ -842,14 +840,13 @@ void DTMGrid::identifyOutliers(int numPts_, double minZ, double maxZ)
 
 void DTMGrid::identifyCells(int numPts_)
 {
-	int     i = 0, j = 0, window = 0, maxWindow = 0;
+	int     maxWindow = 0;
 	double  maxHeight = 0;
-	DTMGrid thisSurface;
 
 	DTMGrid lastSurface = *this;
 
 	maxWindow = std::ceil(MAX_WINDOW_SIZE / CELL_SIZE);
-	for (window = 1; window <= maxWindow; window++)
+	for (int window = 1; window <= maxWindow; window++)
 	{
 		maxHeight = MAX_SLOPE * (float) window * CELL_SIZE;
 
@@ -858,16 +855,16 @@ void DTMGrid::identifyCells(int numPts_)
 		std::cout << "SMRF w=" << window << "/" << maxWindow << " h=" << maxHeight << "...\n";
 #endif
 
-		thisSurface = lastSurface.morphologicalOpening(window, numPts_);
-		for (i = 0; i < thisSurface.rows; i++)
-			for (j = 0; j < thisSurface.cols; j++)
+		DTMGrid thisSurface = lastSurface.morphologicalOpening(window, numPts_);
+		for (int i = 0; i < thisSurface.rows; i++)
+			for (int j = 0; j < thisSurface.cols; j++)
 				if (lastSurface.cells[i * cols + j].z - thisSurface.cells[i * cols + j].z > maxHeight)
 					thisSurface.cells[i * cols + j].obj = true;
 
 		lastSurface = thisSurface;
 	}
-	for (i = 0; i < lastSurface.rows; i++)
-		for (j = 0; j < lastSurface.cols; j++)
+	for (int i = 0; i < lastSurface.rows; i++)
+		for (int j = 0; j < lastSurface.cols; j++)
 			cells[i * cols + j].obj = lastSurface.cells[i * cols + j].obj;
 }
 
