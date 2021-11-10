@@ -54,7 +54,7 @@ public:
 
 	std::vector<Interval>& getRecords() { return m_records; }
 
-	void report(ostream & os);
+	void report(ostream & stream);
 };
 
 #endif

@@ -54,20 +54,20 @@ void Filter::doCSF(Cfg& config)
 
 	if (config.isGoodRead())
 	{
-		std::string slop_smooth(config.getValue("slop_smooth"));
+		std::string slope_smooth(config.getValue("slope_smooth"));
 		
 		bool ss = false;
-		if (slop_smooth == "true" || slop_smooth == "True")
+		if (slope_smooth == "true" || slope_smooth == "True")
 		{
 			ss = true;
 		}
-		else if (slop_smooth == "false" || slop_smooth == "False")
+		else if (slope_smooth == "false" || slope_smooth == "False")
 		{
 			ss = false;
 		}
 		else
 		{
-			if (atoi(slop_smooth.c_str()) == 0)
+			if (atoi(slope_smooth.c_str()) == 0)
 			{
 				ss = false;
 			}

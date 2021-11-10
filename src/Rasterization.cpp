@@ -99,20 +99,20 @@ double Rasterization::findHeightValByNeighbor(Particle *p) {
     return MIN_INF;
 }
 
-void Rasterization::RasterTerrain(Cloth          & cloth,
-                                  csf::PointCloud& pc,
-                                  std::vector<double> & heightVal) {
+void Rasterization::RasterTerrain(Cloth& cloth, csf::PointCloud& pc, std::vector<double> & heightVal) 
+{
+    double radius = cloth.step_x / 2.0;
 
     for (std::size_t i = 0; i < pc.m_points.size(); i++) {
         double pc_x = pc.m_points[i].x();
         double pc_z = pc.m_points[i].z();
 
-        double deltaX = pc_x - cloth.origin_pos.f[0];
-        double deltaZ = pc_z - cloth.origin_pos.f[2];
-        int    col    = int(deltaX / cloth.step_x + 0.5);
-        int    row    = int(deltaZ / cloth.step_y + 0.5);
+        double deltaX = pc_x - (cloth.origin_pos.f[0] - radius);
+        double deltaZ = pc_z - (cloth.origin_pos.f[2] - radius);
+        int    col    = std::floor(deltaX / cloth.step_x);
+        int    row    = std::floor(deltaZ / cloth.step_y);
 
-        if ((col >= 0) && (row >= 0)) {
+        if (col >= 0 && row >= 0 && col < cloth.num_particles_width && row < cloth.num_particles_height) {
             Particle *pt = cloth.getParticle(col, row);
             pt->correspondingLidarPointList.push_back(i);
             double pc2particleDist = SQUARE_DIST(

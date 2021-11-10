@@ -42,7 +42,7 @@ void AccumTime::stop(const std::string& details)
 	m_records.emplace_back(interval);
 }
 
-void AccumTime::report(ostream & os)
+void AccumTime::report(ostream & stream)
 {
 	std::stringstream ss;
 
@@ -54,7 +54,7 @@ void AccumTime::report(ostream & os)
 	}
 	ss << "TOTAL TIME: " << m_milliseconds / 1000.0 << "s\n";
 
-	os << ss.str();
+	stream << ss.str();
 }
 
 void AccumTime::computeOverhead()

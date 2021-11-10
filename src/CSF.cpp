@@ -29,7 +29,8 @@
 
 #include <fstream>
 
-CSF::CSF(int index) {
+CSF::CSF(int index)
+{
     m_params.bSloopSmooth     = true;
     m_params.time_step        = 0.65;
     m_params.class_threshold  = 0.5;
@@ -40,7 +41,8 @@ CSF::CSF(int index) {
     m_index = index;
 }
 
-CSF::CSF() {
+CSF::CSF()
+{
 	m_params.bSloopSmooth = true;
 	m_params.time_step = 0.65;
 	m_params.class_threshold = 0.5;
@@ -53,7 +55,8 @@ CSF::CSF() {
 CSF::~CSF()
 {}
 
-void CSF::setPointCloud(std::vector<Lpoint> points) {
+void CSF::setPointCloud(std::vector<Lpoint> points)
+{
     point_cloud.m_points.resize(points.size());
 
     int pointCount = static_cast<int>(points.size());
@@ -67,7 +70,8 @@ void CSF::setPointCloud(std::vector<Lpoint> points) {
     }
 }
 
-void CSF::setPointCloud(double *points, int rows) {
+void CSF::setPointCloud(double *points, int rows)
+{
 	#define A(i, j) points[i + j * rows]
 
     for (int i = 0; i < rows; i++) {
@@ -79,7 +83,8 @@ void CSF::setPointCloud(double *points, int rows) {
     }
 }
 
-void CSF::setPointCloud(csf::PointCloud& pc) {
+void CSF::setPointCloud(csf::PointCloud& pc)
+{
     point_cloud.m_points.resize(pc.m_points.size());
     int pointCount = static_cast<int>(pc.m_points.size());
     #pragma omp parallel for
@@ -92,11 +97,14 @@ void CSF::setPointCloud(csf::PointCloud& pc) {
     }
 }
 
-void CSF::setPointCloud(std::vector<std::vector<float> > points) {
+void CSF::setPointCloud(std::vector<std::vector<float> > points)
+{
     point_cloud.m_points.resize(points.size());
     int pointCount = static_cast<int>(points.size());
+
     #pragma omp parallel for
-    for (int i = 0; i < pointCount; i++) {
+    for (int i = 0; i < pointCount; i++)
+    {
         Lpoint las;
         las.setX(points[i][0]);
         las.setY(-points[i][2]);
@@ -105,21 +113,24 @@ void CSF::setPointCloud(std::vector<std::vector<float> > points) {
     }
 }
 
-void CSF::readPointsFromFile(std::string filename) {
+void CSF::readPointsFromFile(std::string filename)
+{
     this->point_cloud.m_points.resize(0);
     this->point_cloud.m_points = readPointCloud(filename);
     
     //invert
     for (Lpoint& point : this->point_cloud.m_points)
     {
-        double y{point.y()}, z{point.z()};
-        point.setY(-z); point.setZ(y);
+        double y(point.y());
+        double z(point.z());
+        
+        point.setY(-z);
+        point.setZ(y);
     }
 }
 
-void CSF::do_filtering(std::vector<int>& groundIndexes,
-                       std::vector<int>& offGroundIndexes,
-                       bool              exportCloth) {
+void CSF::do_filtering(std::vector<int>& groundIndexes, std::vector<int>& offGroundIndexes, bool exportCloth)
+{
     // Terrain
     std::cout << "[" << this->m_index << "] Configuring terrain..." << std::endl;
     Lpoint bbMin, bbMax;
@@ -131,23 +142,30 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     double cloth_y_height = 0.05;
 
     int  clothbuffer_d = 2;
+    
     Vec3 origin_pos(
-        bbMin.x() - clothbuffer_d * m_params.cloth_resolution,
+        std::ceil(bbMin.x()),
         bbMax.y() + cloth_y_height,
-        bbMin.z() - clothbuffer_d * m_params.cloth_resolution
+        std::ceil(bbMin.z())
     );
 
+    /* cambio na forma de calcular o tamaño do DTM  */
+    double min[2] = {
+        std::ceil(bbMin.x()),
+        std::ceil(bbMin.z())
+    };
+
     int width_num = static_cast<int>(
-        std::floor((bbMax.x() - bbMin.x()) / m_params.cloth_resolution)
-    ) + 2 * clothbuffer_d;
+        std::ceil(std::floor((bbMax.x() - min[0]) / m_params.cloth_resolution))
+    );
 
     int height_num = static_cast<int>(
-        std::floor((bbMax.z() - bbMin.z()) / m_params.cloth_resolution)
-    ) + 2 * clothbuffer_d;
+        std::ceil(std::floor((bbMax.z() - min[1]) /  m_params.cloth_resolution))
+    );
 
     std::cout << "[" << this->m_index << "] Configuring cloth..." << std::endl;
-    std::cout << "[" << this->m_index << "]  - width: " << width_num << " "
-         << "height: " << height_num << '\n';
+    std::cout << "[" << this->m_index << "]  - width: " << width_num << " " 
+            << "height: " << height_num << '\n';
 
     Cloth cloth(
         origin_pos,
@@ -174,7 +192,8 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
     cloth.addForce(Vec3(0, -gravity, 0) * time_step2);
 
     // boost::progress_display pd(params.interations);
-    for (int i = 0; i < m_params.interations; i++) {
+    for (int i = 0; i < m_params.interations; i++)
+    {
         double maxDiff = cloth.timeStep();
         cloth.terrCollision();
 		//params.class_threshold / 100
@@ -185,7 +204,9 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
         // pd++;
     }
 	AccumTime::instance().stop("Cloth Simulation");
-    if (m_params.bSloopSmooth) {
+
+    if (m_params.bSloopSmooth)
+    {
         std::cout << "[" << this->m_index << "]  - post handle..." << '\n';
 		AccumTime::instance().start();
         cloth.movableFilter();
@@ -201,7 +222,8 @@ void CSF::do_filtering(std::vector<int>& groundIndexes,
 	AccumTime::instance().stop("Cloud to cloud distance");
 }
 
-void CSF::savePoints(std::vector<int> grp, std::string path) {
+void CSF::savePoints(std::vector<int> grp, std::string path)
+{
     if (path == "") {
         return;
     }
@@ -211,11 +233,12 @@ void CSF::savePoints(std::vector<int> grp, std::string path) {
     if (!f1)
         return;
 
-    for (std::size_t i = 0; i < grp.size(); i++) {
+    for (std::size_t i = 0; i < grp.size(); i++)
+    {
         f1 << std::fixed << std::setprecision(8)
-           << point_cloud.m_points[grp[i]].x()  << "	"
-           << point_cloud.m_points[grp[i]].z()  << "	"
-           << -point_cloud.m_points[grp[i]].y() << std::endl;
+            << point_cloud.m_points[grp[i]].x()  << "	"
+            << point_cloud.m_points[grp[i]].z()  << "	"
+            << -point_cloud.m_points[grp[i]].y() << std::endl;
     }
 
     f1.close();

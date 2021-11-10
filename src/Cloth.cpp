@@ -42,20 +42,21 @@ Cloth::Cloth(const Vec3& _origin_pos,
     step_x(_step_x),
     step_y(_step_y),
     num_particles_width(_num_particles_width),
-    num_particles_height(_num_particles_height) {
+    num_particles_height(_num_particles_height)
+{
     // I am essentially using this vector as an array with room for
     // num_particles_width*num_particles_height particles
     particles.resize(num_particles_width * num_particles_height);
 
     double time_step2 = time_step * time_step;
-
+    double r = step_x / 2.0;
     // creating particles in a grid of particles from (0,0,0) to
     // (width,-height,0) creating particles in a grid
     for (int i = 0; i < num_particles_width; i++) {
         for (int j = 0; j < num_particles_height; j++) {
-            Vec3 pos(origin_pos.f[0] + i * step_x,
+            Vec3 pos(origin_pos.f[0] + i * step_x + r,
                      origin_pos.f[1],
-                     origin_pos.f[2] + j * step_y);
+                     origin_pos.f[2] + j * step_y + r);
 
             // insert particle in column i at j'th row
             particles[j * num_particles_width + i]       = Particle(pos, time_step2);

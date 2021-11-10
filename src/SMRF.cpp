@@ -51,7 +51,7 @@ void classify(std::vector<Lpoint> & points, DTMGrid & dtm)
 {
 	int count = 0;
 
-	std::ofstream f(mainOptions.outputDirName + "/dtm/result.xyz");
+	std::ofstream f(mainOptions.outputDirName + "/smrf/result.xyz");
 
 	f << std::fixed << std::setprecision(3);
 
@@ -337,7 +337,7 @@ void DTMGrid::createClusters(std::vector<indexOfCell_t>& inpaintCells, std::map<
 void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_t, std::vector<indexOfCell_t>>& neighbourCells,
 	CheckValueCellFn chValueCellFn, ListNeighsFn listNeighsFn, CheckNeighsFn chNeighsFn, ChangeCellStateFn chCellStateFn)
 {
-	/* resolución non paralela dos clusters */
+	/* resolución dos clusters */
 	for (auto pos{clusters.begin()}; pos != clusters.end(); ++pos)
 	{
 		Cluster cluster{*pos};
@@ -399,7 +399,7 @@ void DTMGrid::solveSystems(std::vector<Cluster>& clusters, std::map<indexOfCell_
 			auto columnEnd{columns.end()};
 
 			int currentRow{};
-			for (std::size_t posCell{}; posCell < columns.size(); ++posCell)
+			for (int posCell{}; posCell < columns.size(); ++posCell)
 			{
 				auto cell{columns[posCell]};
 				auto local{neighbourCells.at(cell)};

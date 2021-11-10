@@ -53,7 +53,7 @@ void csf::PointCloud::computeBoundingBox(Lpoint& bbMin, Lpoint& bbMax) {
 
         if (P.z() < bbMin.z())
         {
-            bbMin.setX(P.x());
+            bbMin.setZ(P.z());
         }
         else if (P.z() > bbMax.z())
         {
