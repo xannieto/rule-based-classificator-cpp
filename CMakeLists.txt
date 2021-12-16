@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(rule-based-classifier-cpp)
+project(proxecto-tfg)
 
 set(CMAKE_CXX_STANDARD 20)
 if (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -63,6 +63,6 @@ set(INC_FILES
 	inc/AccumTime.h
 	inc/filter.h)
 
-add_executable(rule_based_classifier_cpp.out ${SRC_FILES} ${INC_FILES})
+add_executable(compute_dtm.out ${SRC_FILES} ${INC_FILES})
 
-target_link_libraries(rule_based_classifier_cpp.out ${EXTERNAL_LIBS})
+target_link_libraries(compute_dtm.out ${EXTERNAL_LIBS})
