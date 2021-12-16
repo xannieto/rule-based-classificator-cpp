@@ -66,6 +66,11 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# Compressed files
+*.tar.xz
+*.tar.gz
+*.zip
+
 # other
 out/*
 cmake-build-debug/*
@@ -81,3 +86,4 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 compile_commands.json
+
